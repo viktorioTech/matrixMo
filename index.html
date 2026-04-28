@@ -3,61 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matrix Mo 2026 - Fixed & Stable</title>
+    <title>Matrix Mo 2026 - Stable Version</title>
     <style>
         body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: none; }
         canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        
-        body::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            background-size: 100% 4px; z-index: 999; pointer-events: none;
-        }
-
+        body::after { content: ""; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%); background-size: 100% 4px; z-index: 999; pointer-events: none; }
         .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid #00ff00; box-shadow: 0 0 25px #004400; width: 95%; max-width: 650px; box-sizing: border-box; }
-        
         .char-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
-        .char-card { border: 1px solid #004400; padding: 8px; cursor: pointer; background: #000500; width: 22%; min-width: 80px; transition: 0.3s; animation: float 10s ease-in-out infinite; box-sizing: border-box; font-size: 12px; }
+        .char-card { border: 1px solid #004400; padding: 8px; cursor: pointer; background: #000500; width: 22%; min-width: 80px; transition: 0.3s; animation: float 10s ease-in-out infinite; box-sizing: border-box; font-size: 11px; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        
         .mystic { border-color: #ff00ff !important; box-shadow: 0 0 10px #aa00aa; }
         .char-card img { width: 100%; max-width: 60px; image-rendering: pixelated; margin-bottom: 5px; }
-        
         input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 16px; text-align: center; width: 100%; max-width: 200px; outline: none; margin-bottom: 10px; }
         .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 12px; cursor: pointer; font-size: 16px; width: 100%; max-width: 200px; }
-
         #story-screen, #quest-screen, #final-animation, #game-ui, #mobile-controls { display: none; }
         .story-img, .quest-img { width: 100%; max-height: 35vh; object-fit: contain; border: 1px solid #00ff00; margin-bottom: 15px; }
-        
         .glitch-active { animation: shake 0.2s infinite; filter: hue-rotate(90deg) contrast(150%); }
         @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(3px, -3px); } 50% { transform: translate(-3px, 3px); } 100% { transform: translate(0); } }
-        
         .text-box { min-height: 60px; font-size: 14px; margin-bottom: 15px; line-height: 1.4; color: #0f0; }
-
         #game-ui { position: absolute; top: 10px; z-index: 20; width: 80%; max-width: 250px; background: rgba(0,0,0,0.7); border: 1px solid #0f0; padding: 5px; text-align: center; font-size: 12px; }
         #sync-bar-container { width: 100%; height: 10px; border: 1px solid #0f0; margin-top: 5px; }
         #sync-bar { width: 0%; height: 100%; background: #0f0; }
-
         #mobile-controls { position: absolute; bottom: 20px; width: 100%; display: none; justify-content: space-around; z-index: 1000; }
         .touch-btn { background: rgba(0, 40, 0, 0.7); color: #0f0; border: 2px solid #0f0; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 30px; border-radius: 10px; user-select: none; }
-
         #hero-sprite { position: absolute; z-index: 5; display: none; width: 60px; image-rendering: pixelated; pointer-events: none; }
     </style>
 </head>
 <body>
-
     <canvas id="matrix-canvas"></canvas>
     <img id="hero-sprite" src="" alt="Hero">
-
-    <div id="game-ui">
-        <div>SYNC: <span id="sync-val">0</span>%</div>
-        <div id="sync-bar-container"><div id="sync-bar"></div></div>
-    </div>
-
-    <div id="mobile-controls">
-        <div class="touch-btn" id="btn-left">⇦</div>
-        <div class="touch-btn" id="btn-right">⇨</div>
-    </div>
+    <div id="game-ui"><div>SYNC: <span id="sync-val">0</span>%</div><div id="sync-bar-container"><div id="sync-bar"></div></div></div>
+    <div id="mobile-controls"><div class="touch-btn" id="btn-left">⇦</div><div class="touch-btn" id="btn-right">⇨</div></div>
 
     <div id="login-screen" class="ui">
         <h3 style="margin-top: 0;">IDENTIFY YOURSELF</h3>
@@ -67,15 +43,13 @@
             <div onclick="setChar('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДЯ</div>
             <div onclick="setChar('ANNA', 'anna.png')" class="char-card mystic"><img src="anna.png"><br>АННА</div>
         </div>
-
-        <p style="font-size: 12px; margin: 10px 0;">АБО ВІДКРИЙТЕ ІСТОРІЮ:</p>
-        <div onclick="startViktorStory()" class="char-card" style="width: 100%; border-color: #0f0; margin-bottom: 15px;">
+        <p style="font-size: 11px; margin: 10px 0;">АБО ВІДКРИЙТЕ ІСТОРІЮ:</p>
+        <div onclick="startViktorStory()" class="char-card" style="width: 100%; border-color: #0f0; margin-bottom: 10px;">
             <img src="viktor.png" style="max-width: 40px;"><br>ТІНЬ У КОДІ (STORY MODE)
         </div>
-
         <input type="text" id="userName" maxlength="12" placeholder="ENTER NAME">
         <div id="error-msg" style="color: red; font-size: 12px; height: 15px;"></div>
-        <button class="btn" onclick="validateAndStart()">INITIALIZE SYSTEM</button>
+        <button class="btn" onclick="validateAndStart()">INITIALIZE</button>
     </div>
 
     <div id="story-screen" class="ui">
@@ -90,25 +64,21 @@
         <button class="btn" onclick="nextQuestScene()">КЛІКНІТЬ ДЛЯ ПРОДОВЖЕННЯ</button>
     </div>
 
-    <div id="final-animation" class="ui" style="border:none; background:none; box-shadow:none;">
-        <div id="typing-text" style="font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #0f0;"></div>
-    </div>
+    <div id="final-animation" class="ui" style="border:none; background:none; box-shadow:none;"><div id="typing-text" style="font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #0f0;"></div></div>
 
     <script>
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
-        let w, h, selectedName = "", heroImg = "", isGaming = false, syncScore = 0, heroX = 0;
-        let moveLeft = false, moveRight = false, currentSceneIndex = 0, currentQuestIndex = 0;
-        
+        let w, h, selectedName = "", heroImg = "", isGaming = false, syncScore = 0, heroX = 0, moveLeft = false, moveRight = false, currentSceneIndex = 0, currentQuestIndex = 0;
         const heroes = {'OLEH': 'oleh.png', 'VIKTOR': 'viktor.png', 'VOLODY': 'volodymyr.png', 'ANNA': 'anna.png'};
         const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%".split("");
-        
-        // КВЕСТОВІ СЦЕНИ (Виправлено назви файлів на .jpg та виправлено лапки)
+
+        // ВИПРАВЛЕНО НА .png (згідно з репозиторієм)
         const questScenes = [
-            { img: 'vik_acces_rel.png', text: "Віктор розпочинає доступ. Система реагує: ACCESSING REALITY..." },
-            { img: 'equipm_detec.png', text: "Виявлено обладнання. Віктор екіпірує жилет. NOW WE ARE TALKING..." },
-            { img: 'vik_protocol.png', text: "Обхід протоколу безпеки. STABILIZING reality_core.obj..." },
-            { img: 'vik_fight.png', text: "Агенти виявлені! SYNC STATUS: CRITICAL! Віктор, тримай фокус!" }
+            { img: 'vik_quest_1.png', text: "Віктор розпочинає доступ. Система реагує: ACCESSING REALITY..." },
+            { img: 'vik_quest_2.png', text: "Виявлено обладнання. Віктор екіпірує жилет. NOW WE ARE TALKING..." },
+            { img: 'vik_quest_3.png', text: "Обхід протоколу безпеки. STABILIZING reality_core.obj..." },
+            { img: 'vik_quest_4.png', text: "Агенти виявлені! SYNC STATUS: CRITICAL! Віктор, тримай фокус!" }
         ];
 
         const storyScenes = [
@@ -117,31 +87,20 @@
             { text: (n) => `Система виходить з-під контролю! Реальність розпадається.`, glitch: true }
         ];
 
-        function initCanvas() {
-            w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
-            heroX = w / 2; drops = Array(Math.floor(w / 16)).fill(1);
-        }
+        function initCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; heroX = w / 2; drops = Array(Math.floor(w / 16)).fill(1); }
         window.addEventListener('resize', initCanvas); initCanvas();
 
         function drawRain() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = "#0f0"; ctx.font = "16px monospace";
-            drops.forEach((y, i) => {
-                ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*16, y*16);
-                if(y*16 > h && Math.random() > 0.99) drops[i] = 0; drops[i]++;
-            });
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, w, h); ctx.fillStyle = "#0f0"; ctx.font = "16px monospace";
+            drops.forEach((y, i) => { ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*16, y*16); if(y*16 > h && Math.random() > 0.99) drops[i] = 0; drops[i]++; });
         }
         setInterval(drawRain, 150);
 
         function typeWriter(text, elId, i, cb) {
             const el = document.getElementById(elId);
-            if (i < text.length) {
-                el.innerHTML = text.substring(0, i+1) + "_";
-                setTimeout(() => typeWriter(text, elId, i + 1, cb), 30);
-            } else if (cb) cb();
+            if (i < text.length) { el.innerHTML = text.substring(0, i+1) + "_"; setTimeout(() => typeWriter(text, elId, i + 1, cb), 30); } else if (cb) cb();
         }
 
-        // NAVIGATION
         function setChar(name, img) { document.getElementById('userName').value = name; validateAndStart(); }
 
         function validateAndStart() {
@@ -154,23 +113,14 @@
         }
 
         function renderStory() {
-            const s = storyScenes[currentSceneIndex];
-            const img = document.getElementById('story-image-element');
+            const s = storyScenes[currentSceneIndex]; const img = document.getElementById('story-image-element');
             s.glitch ? img.classList.add('glitch-active') : img.classList.remove('glitch-active');
             typeWriter(s.text(selectedName), 'story-text-element', 0);
         }
 
-        function nextScene() {
-            currentSceneIndex++; 
-            if (currentSceneIndex < storyScenes.length) renderStory(); else startWakeUp();
-        }
+        function nextScene() { currentSceneIndex++; if (currentSceneIndex < storyScenes.length) renderStory(); else startWakeUp(); }
 
-        function startViktorStory() {
-            selectedName = "VIKTOR";
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('quest-screen').style.display = 'block';
-            renderQuest();
-        }
+        function startViktorStory() { selectedName = "VIKTOR"; document.getElementById('login-screen').style.display = 'none'; document.getElementById('quest-screen').style.display = 'block'; renderQuest(); }
 
         function renderQuest() {
             const q = questScenes[currentQuestIndex];
@@ -184,7 +134,7 @@
             else {
                 document.getElementById('quest-screen').style.display = 'none';
                 document.getElementById('story-screen').style.display = 'block';
-                document.getElementById('story-image-element').src = 'vik_last.png';
+                document.getElementById('story-image-element').src = 'vik_last.png'; // ВИПРАВЛЕНО НА .png
                 document.getElementById('story-next-btn').innerText = "RESTART";
                 document.getElementById('story-next-btn').onclick = () => location.reload();
                 typeWriter("REALITY PATCHED. СИСТЕМУ СТАБІЛІЗОВАНО. ВІТАЄМО, ВІКТОР.", "story-text-element", 0);
@@ -192,30 +142,19 @@
         }
 
         function startWakeUp() {
-            document.getElementById('story-screen').style.display = 'none';
-            document.getElementById('final-animation').style.display = 'block';
-            const txt = `WAKE UP, ${selectedName.toUpperCase()}...`;
-            let i = 0;
-            const runType = () => {
-                if (i < txt.length) {
-                    document.getElementById('typing-text').innerHTML += txt[i++];
-                    setTimeout(runType, 150);
-                } else setTimeout(spawnHero, 1000);
-            };
+            document.getElementById('story-screen').style.display = 'none'; document.getElementById('final-animation').style.display = 'block';
+            const txt = `WAKE UP, ${selectedName.toUpperCase()}...`; let i = 0;
+            const runType = () => { if (i < txt.length) { document.getElementById('typing-text').innerHTML += txt[i++]; setTimeout(runType, 150); } else setTimeout(spawnHero, 1000); };
             runType();
         }
 
         function spawnHero() {
             document.getElementById('final-animation').style.display = 'none';
-            const h = document.getElementById('hero-sprite');
-            h.src = heroImg; h.style.display = 'block'; h.style.top = (window.innerHeight - 120) + "px";
+            const h = document.getElementById('hero-sprite'); h.src = heroImg; h.style.display = 'block'; h.style.top = (window.innerHeight - 120) + "px";
             if (selectedName === "ANNA") h.style.filter = "drop-shadow(0 0 15px #f0f) hue-rotate(280deg)";
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('mobile-controls').style.display = 'flex';
-            isGaming = true;
+            document.getElementById('game-ui').style.display = 'block'; document.getElementById('mobile-controls').style.display = 'flex'; isGaming = true;
         }
 
-        // GAME ENGINE
         const fragments = [];
         function updateGame() {
             if (Math.random() > 0.96) fragments.push({ x: Math.random()*w, y: -20, c: chars[Math.floor(Math.random()*chars.length)] });
@@ -224,26 +163,22 @@
                 f.y += 4; ctx.fillText(f.c, f.x, f.y);
                 const rect = document.getElementById('hero-sprite').getBoundingClientRect();
                 if (f.y > rect.top && f.y < rect.bottom && f.x > rect.left && f.x < rect.right) {
-                    fragments.splice(i, 1); syncScore += 5;
-                    if (syncScore > 100) syncScore = 100;
-                    document.getElementById('sync-val').innerText = syncScore;
-                    document.getElementById('sync-bar').style.width = syncScore + "%";
+                    fragments.splice(i, 1); syncScore += 5; if (syncScore > 100) syncScore = 100;
+                    document.getElementById('sync-val').innerText = syncScore; document.getElementById('sync-bar').style.width = syncScore + "%";
                 }
             });
-            if (moveLeft) heroX -= 6; if (moveRight) heroX += 6;
-            heroX = Math.max(40, Math.min(w-40, heroX));
+            if (moveLeft) heroX -= 6; if (moveRight) heroX += 6; heroX = Math.max(40, Math.min(w-40, heroX));
             document.getElementById('hero-sprite').style.left = heroX + "px";
             if (syncScore >= 100 && isGaming) { isGaming = false; alert("SYNC COMPLETE."); location.reload(); }
         }
         function loop() { if(isGaming) updateGame(); requestAnimationFrame(loop); } loop();
 
-        // INPUTS
         window.onkeydown = (e) => { if(e.key.includes("Left") || e.key === 'a') moveLeft = true; if(e.key.includes("Right") || e.key === 'd') moveRight = true; };
         window.onkeyup = (e) => { moveLeft = false; moveRight = false; };
         const regBtn = (id, l) => {
             const b = document.getElementById(id);
-            b.ontouchstart = b.onmousedown = (e) => { e.preventDefault(); l ? moveLeft = true : moveRight = true; };
-            b.ontouchend = b.onmouseup = (e) => { e.preventDefault(); moveLeft = moveRight = false; };
+            b.ontouchstart = (e) => { e.preventDefault(); l ? moveLeft = true : moveRight = true; };
+            b.ontouchend = (e) => { e.preventDefault(); moveLeft = moveRight = false; };
         };
         regBtn('btn-left', true); regBtn('btn-right', false);
     </script>
