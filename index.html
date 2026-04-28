@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>NES Matrix - The Story</title>
+    <title>NES Matrix - Character Selection</title>
     <style>
         body { 
             background-color: #000; 
@@ -16,128 +16,170 @@
             font-family: 'Courier New', Courier, monospace; 
             overflow: hidden;
             user-select: none;
+            position: relative; /* Для ефекту монітора */
+        }
+        
+        /* Ефект старого телевізора (Scanlines) */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none; /* Щоб не заважало клікати */
+        }
+
+        /* Задній фон з Матричним дощем */
+        #matrix-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            opacity: 0.5;
         }
         
         /* Екран логіну */
-        #login-screen { text-align: center; max-width: 600px; }
-        .char-container { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
-        .char-card { border: 2px solid #005500; padding: 10px; cursor: pointer; transition: 0.3s; background-color: #001100; }
-        .char-card:hover { border-color: #00ff00; background-color: #003300; transform: scale(1.05); box-shadow: 0 0 15px #00ff00; }
-        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; margin-bottom: 10px; }
-        .char-name { font-weight: bold; font-size: 18px; }
+        #login-screen { text-align: center; max-width: 600px; z-index: 10; position: relative; }
         
-        input[type="text"] { background-color: #000; color: #00ff00; border: 1px solid #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 20px; padding: 8px; text-transform: uppercase; text-align: center; width: 180px; margin-bottom: 10px; outline: none; }
-        .start-btn { background-color: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 18px; }
-        .start-btn:hover { background-color: #00ff00; color: #000; }
+        /* Анімація Глітчу для заголовка */
+        h2 { text-shadow: 2px 0px 5px #00ff00, -2px 0px 5px #008800; animation: glitch 3s infinite; }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 1px) }
+            40% { transform: translate(-1px, -1px) }
+            60% { transform: translate(2px, 1px) }
+            80% { transform: translate(1px, -1px) }
+            100% { transform: translate(0) }
+        }
+
+        .char-container { display: flex; gap: 30px; justify-content: center; margin-bottom: 30px; margin-top: 20px;}
+        
+        /* Картки героїв + Анімація левітації */
+        .char-card { 
+            border: 2px solid #005500; padding: 15px; cursor: pointer; transition: 0.3s; 
+            background-color: rgba(0, 17, 0, 0.8); 
+            animation: float 4s ease-in-out infinite; /* Левітація */
+        }
+        /* Різна затримка, щоб вони гойдалися не одночасно */
+        .char-card:nth-child(1) { animation-delay: 0s; }
+        .char-card:nth-child(2) { animation-delay: 1.5s; }
+        .char-card:nth-child(3) { animation-delay: 3s; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
+            50% { transform: translateY(-15px); box-shadow: 0 15px 15px #00ff00; border-color: #00ff00; }
+            100% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
+        }
+
+        .char-card:hover { background-color: #003300; transform: scale(1.1) !important; animation-play-state: paused; }
+        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; margin-bottom: 10px; }
+        .char-name { font-weight: bold; font-size: 18px; text-shadow: 0 0 5px #00ff00;}
+        
+        input[type="text"] { background-color: #000; color: #00ff00; border: 1px solid #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 20px; padding: 8px; text-transform: uppercase; text-align: center; width: 180px; margin-bottom: 10px; outline: none; z-index: 10; position: relative;}
+        .start-btn { background-color: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 18px; z-index: 10; position: relative;}
+        .start-btn:hover { background-color: #00ff00; color: #000; box-shadow: 0 0 10px #00ff00;}
         #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; text-shadow: 0 0 5px red; }
 
-        /* Екран історії */
-        #story-screen { display: none; text-align: center; max-width: 700px; cursor: pointer; }
-        .story-image { width: 100%; border: 2px solid #00ff00; box-shadow: 0 0 20px #004400; margin-bottom: 20px; image-rendering: pixelated; }
-        .story-text { font-size: 20px; line-height: 1.5; min-height: 90px; }
-        .click-prompt { font-size: 14px; color: #008800; animation: blink 1s infinite; margin-top: 20px; }
+        /* Екран історії та гри */
+        #scene-screen { display: none; text-align: center; max-width: 600px; z-index: 10; position: relative;}
+        .office-scene { width: 100%; max-width: 500px; border: 2px solid #00ff00; image-rendering: pixelated; margin-bottom: 20px; box-shadow: 0 0 30px #008800; }
+        .loading-text { font-size: 24px; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
 
-        /* Екран гри */
-        canvas { border: 2px solid #00ff00; image-rendering: pixelated; width: 512px; height: 480px; display: none; box-shadow: 0 0 20px #00ff00; }
-        #controls { margin-top: 15px; color: #008800; display: none; }
+        canvas#nes-canvas { border: 2px solid #00ff00; image-rendering: pixelated; width: 512px; height: 480px; display: none; box-shadow: 0 0 30px #00ff00; z-index: 10; position: relative;}
     </style>
 </head>
 <body>
 
+    <canvas id="matrix-bg"></canvas>
+
     <div id="login-screen">
         <h2>ОБЕРІТЬ СВОГО АВАТАРА</h2>
         <div class="char-container">
-            <div class="char-card" onclick="selectChar('OLEH')">
+            <div class="char-card" onclick="prepareScene('OLEH')">
                 <img src="oleh.png" alt="Олег">
                 <div class="char-name">ОЛЕГ</div>
             </div>
-            <div class="char-card" onclick="selectChar('VIKTOR')">
+            <div class="char-card" onclick="prepareScene('VIKTOR')">
                 <img src="viktor.png" alt="Віктор">
                 <div class="char-name">ВІКТОР</div>
             </div>
-            <div class="char-card" onclick="selectChar('VOLODY')">
+            <div class="char-card" onclick="prepareScene('VOLODY')">
                 <img src="volodymyr.png" alt="Володимир">
                 <div class="char-name">ВОЛОДИМИР</div>
             </div>
         </div>
         <p>АБО ВВЕДІТЬ КОДОВЕ ІМ'Я:</p>
-        <input type="text" id="userName" maxlength="6" placeholder="NEO" autocomplete="off" spellcheck="false">
+        <input type="text" id="userName" maxlength="6" placeholder="NEO">
         <br>
-        <button class="start-btn" onclick="startStory()">ІНІЦІАЛІЗАЦІЯ</button>
+        <button class="start-btn" onclick="prepareScene()">ІНІЦІАЛІЗАЦІЯ</button>
         <p id="error-msg" style="color: red; display: none;"></p>
     </div>
 
-    <div id="story-screen" onclick="nextStoryScene()">
-        <img id="story-img" src="" class="story-image">
-        <div id="story-text" class="story-text"></div>
-        <div class="click-prompt">[ КЛІКНІТЬ ДЛЯ ПРОДОВЖЕННЯ ]</div>
+    <div id="scene-screen">
+        <h2 id="scene-title">ЛОКАЦІЯ: ОФІС 2026</h2>
+        <img src="Vov1.png" class="office-scene" alt="Office Scene">
+        <p class="loading-text">ВСТАНОВЛЕННЯ ЗВ'ЯЗКУ З <span id="target-name">...</span></p>
     </div>
 
     <canvas id="nes-canvas" width="256" height="240"></canvas>
-    <div id="controls">Керування: Стрілки та клавіші Z, X, Enter, Space</div>
 
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
     <script>
-        let currentScene = 0;
-        let heroName = "NEO";
-        let storyData = [];
+        // --- АНІМАЦІЯ МАТРИЧНОГО ДОЩУ (HTML Canvas) ---
+        const bgCanvas = document.getElementById('matrix-bg');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789АБВГДЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'.split('');
+        const fontSize = 16;
+        const columns = bgCanvas.width / fontSize;
+        const drops = [];
+        for(let x = 0; x < columns; x++) drops[x] = 1;
 
-        function selectChar(name) {
-            document.getElementById('userName').value = name;
-            startStory(); 
+        function drawBg() {
+            bgCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = '#0F0';
+            bgCtx.font = fontSize + 'px monospace';
+            for(let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                bgCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if(drops[i] * fontSize > bgCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
         }
+        let bgInterval = setInterval(drawBg, 33); // Запускаємо дощ
 
-        function startStory() {
+        // --- ЛОГІКА ПЕРЕХОДІВ ---
+        function prepareScene(name) {
+            if (name) document.getElementById('userName').value = name;
             let rawInput = document.getElementById('userName').value;
             const errorMsg = document.getElementById('error-msg');
-            errorMsg.style.display = 'none';
-
-            // Перевірка на кирилицю
+            
             if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(rawInput)) {
                 errorMsg.innerText = "Шо ти голова?";
                 errorMsg.style.display = 'block';
                 return;
             }
 
-            heroName = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '') || "NEO";
-
-            // Формуємо масив історії з урахуванням імені
-            storyData = [
-                {
-                    img: "Vov.png",
-                    text: `Львів. 2026 рік. Відділ розробки кібер-безпеки.\nЗвичайний вівторок. Команда спокійно працює над новим патчем.`
-                },
-                {
-                    img: "Vov1.png",
-                    text: `Раптом на моніторі починається аномалія.\nСистема блокує доступ. На екрані світиться лише одне:\n"WAKE UP, ${heroName}..."`
-                },
-                {
-                    img: "Vov1.png",
-                    text: `Свідомість ${heroName} відривається від реальності.\nВас затягує у 8-бітний простір коду...`
-                }
-            ];
-
+            let finalName = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '') || "NEO";
+            
+            // Ховаємо меню і вимикаємо фоновий дощ (щоб не гальмувало гру)
             document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('story-screen').style.display = 'block';
-            showScene();
+            clearInterval(bgInterval); 
+            document.getElementById('matrix-bg').style.display = 'none';
+
+            // Показуємо сюжет
+            document.getElementById('scene-screen').style.display = 'block';
+            document.getElementById('target-name').innerText = finalName;
+
+            setTimeout(() => { startMatrix(finalName); }, 3000);
         }
 
-        function showScene() {
-            document.getElementById('story-img').src = storyData[currentScene].img;
-            document.getElementById('story-text').innerText = storyData[currentScene].text;
-        }
-
-        function nextStoryScene() {
-            currentScene++;
-            if (currentScene < storyData.length) {
-                showScene();
-            } else {
-                launchGame();
-            }
-        }
-
-        // --- Блок емулятора NES ---
+        // --- ЛОГІКА ЕМУЛЯТОРА NES ---
         const canvas = document.getElementById('nes-canvas');
         const ctx = canvas.getContext('2d');
         const imageData = ctx.createImageData(256, 240);
@@ -150,16 +192,13 @@
             }
         });
 
-        async function launchGame() {
-            document.getElementById('story-screen').style.display = 'none';
+        async function startMatrix(nameInput) {
+            document.getElementById('scene-screen').style.display = 'none';
             canvas.style.display = 'block';
-            document.getElementById('controls').style.display = 'block';
-
-            let paddedName = heroName.padEnd(6, ' ').substring(0, 6);
+            nameInput = nameInput.padEnd(6, ' ').substring(0, 6);
 
             try {
                 const response = await fetch('matrix.nes');
-                if (!response.ok) throw new Error('Помилка: Файл matrix.nes не знайдено на сервері.');
                 const arrayBuffer = await response.arrayBuffer();
                 const data = new Uint8Array(arrayBuffer);
 
@@ -171,7 +210,7 @@
                     }
                 }
                 if (offset !== -1) {
-                    for (let i = 0; i < 6; i++) data[offset + i] = paddedName.charCodeAt(i);
+                    for (let i = 0; i < 6; i++) data[offset + i] = nameInput.charCodeAt(i);
                 }
 
                 let binary = "";
@@ -186,10 +225,7 @@
                 window.addEventListener("keyup", (e) => keyboard(e.keyCode, 'up'));
 
                 setInterval(() => { nes.frame(); }, 16.6);
-
-            } catch (err) {
-                alert(err.message + " Завантажте робочий ROM у 8bitworkshop!");
-            }
+            } catch (err) { alert("Системна помилка: " + err.message); }
         }
     </script>
 </body>
