@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>NES Matrix - Login</title>
+    <title>NES Matrix - Character Selection</title>
     <style>
         body { 
             background-color: #000; 
@@ -25,7 +25,9 @@
         }
         .status { margin-top: 15px; color: #008800; display: none; }
         
-        #login-screen { text-align: center; }
+        #login-screen { text-align: center; max-width: 400px; }
+        
+        /* Стилі для поля введення */
         input[type="text"] {
             background-color: #000;
             color: #00ff00;
@@ -37,31 +39,62 @@
             text-align: center;
             outline: none;
             width: 200px;
-            box-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
         }
-        button {
-            margin-top: 20px;
+
+        /* Кнопки вибору персонажів */
+        .char-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .char-btn {
+            background-color: #001100;
+            color: #00ff00;
+            border: 1px solid #008800;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .char-btn:hover {
+            background-color: #004400;
+            border-color: #00ff00;
+        }
+
+        /* Основна кнопка запуску */
+        .start-btn {
             background-color: #003300;
             color: #00ff00;
             border: 1px solid #00ff00;
             font-family: 'Courier New', Courier, monospace;
             font-size: 18px;
-            padding: 10px 20px;
+            padding: 12px 24px;
             cursor: pointer;
             transition: 0.3s;
+            width: 100%;
         }
-        button:hover { background-color: #00ff00; color: #000; }
-        /* Додамо трохи стилю для пасхалки */
-        #error-msg { margin-top: 15px; font-weight: bold; font-size: 20px; text-shadow: 0 0 5px red; }
+        .start-btn:hover { background-color: #00ff00; color: #000; }
+        
+        #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h2>СИСТЕМА АКТИВОВАНА</h2>
-        <p>Ідентифікуйте себе (до 6 англійських літер):</p>
-        <input type="text" id="userName" maxlength="6" value="NEO" autocomplete="off" spellcheck="false"><br>
-        <button onclick="startMatrix()">ПІДКЛЮЧИТИСЯ</button>
+        <h2>ОБЕРІТЬ ГЕРОЯ</h2>
+        
+        <div class="char-selector">
+            <button class="char-btn" onclick="selectChar('OLEH')">ОЛЕГ</button>
+            <button class="char-btn" onclick="selectChar('VIKTOR')">ВІКТОР</button>
+            <button class="char-btn" onclick="selectChar('VOLODY')">ВОЛОДИМИР</button>
+        </div>
+
+        <p>АБО ВВЕДІТЬ ВЛАСНЕ ІМ'Я:</p>
+        <input type="text" id="userName" maxlength="6" placeholder="NEO" autocomplete="off" spellcheck="false"><br>
+        
+        <button class="start-btn" onclick="startMatrix()">ІНІЦІАЛІЗАЦІЯ</button>
         <p id="error-msg" style="color: red; display: none;"></p>
     </div>
 
@@ -82,18 +115,24 @@
             }
         });
 
+        // Функція для кнопок швидкого вибору
+        function selectChar(name) {
+            document.getElementById('userName').value = name;
+            startMatrix(); // Одразу запускаємо
+        }
+
         async function startMatrix() {
             let rawInput = document.getElementById('userName').value;
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.style.display = 'none';
 
-            // --- ПАСХАЛКА: Перевірка на кирилицю ---
+            // Перевірка на кирилицю (пасхалка)
             const cyrillicPattern = /[А-Яа-яЁёІіЇїЄєҐґ]/;
             if (cyrillicPattern.test(rawInput)) {
-                const errorMsg = document.getElementById('error-msg');
                 errorMsg.innerText = "Шо ти голова?";
                 errorMsg.style.display = 'block';
-                return; // Зупиняємо функцію, гра не запуститься
+                return;
             }
-            // ----------------------------------------
 
             let nameInput = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '');
             if (nameInput === "") nameInput = "NEO";
@@ -105,10 +144,11 @@
 
             try {
                 const response = await fetch('matrix.nes');
-                if (!response.ok) throw new Error('Файл гри не знайдено!');
+                if (!response.ok) throw new Error('Картридж не знайдено!');
                 const arrayBuffer = await response.arrayBuffer();
                 const data = new Uint8Array(arrayBuffer);
 
+                // Патчимо ім'я в ROM
                 let offset = -1;
                 for (let i = 0; i < data.length - 6; i++) {
                     if (data[i] === 86 && data[i+1] === 73 && data[i+2] === 75 &&
@@ -126,9 +166,9 @@
 
                 let binary = "";
                 for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
-                
                 nes.loadROM(binary);
                 
+                // Клавіатура
                 const keyboard = (keyCode, event) => {
                     const map = { 38: 16, 40: 32, 37: 64, 39: 128, 88: 1, 90: 2, 13: 8, 32: 4 };
                     if (map[keyCode]) {
@@ -141,8 +181,8 @@
                 setInterval(() => { nes.frame(); }, 16.6);
 
             } catch (err) {
-                document.getElementById('error-msg').innerText = err.message;
-                document.getElementById('error-msg').style.display = 'block';
+                errorMsg.innerText = err.message;
+                errorMsg.style.display = 'block';
                 document.getElementById('login-screen').style.display = 'block';
                 canvas.style.display = 'none';
             }
