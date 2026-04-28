@@ -2,25 +2,29 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Matrix Mo 2026 - Evolution</title>
+    <title>Matrix Mo 2026 - Custom Identity</title>
     <style>
         body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid #00ff00; box-shadow: 0 0 20px #004400; max-width: 90%; }
+        .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.85); padding: 30px; border: 1px solid #00ff00; box-shadow: 0 0 25px #004400; max-width: 650px; }
         
         /* Вибір персонажа */
-        .char-card { display: inline-block; margin: 15px; cursor: pointer; transition: 0.3s; border: 1px solid #004400; padding: 10px; }
-        .char-card:hover { border-color: #00ff00; transform: scale(1.1); box-shadow: 0 0 15px #00ff00; }
-        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; }
+        .char-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; transition: 0.3s; background: #000500; width: 120px; }
+        .char-card:hover { border-color: #00ff00; transform: scale(1.05); box-shadow: 0 0 15px #00ff00; }
+        .char-card img { width: 80px; height: 80px; image-rendering: pixelated; }
         
-        /* Історія */
+        /* Поле введення */
+        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 250px; outline: none; margin-bottom: 15px; }
+        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 25px; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .btn:hover { background: #00ff00; color: #000; }
+
+        /* Екрани */
         #story-screen, #final-animation { display: none; }
-        .story-img { width: 100%; max-width: 500px; border: 1px solid #00ff00; margin-bottom: 20px; }
-        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-size: 18px; margin-top: 10px; }
-        
-        /* Фінальний екран */
-        #typing-text { font-size: 32px; font-weight: bold; text-shadow: 0 0 10px #00ff00; }
-        #hero-sprite { position: absolute; z-index: 5; display: none; width: 80px; image-rendering: pixelated; }
+        .story-img { width: 100%; max-width: 500px; border: 1px solid #00ff00; margin-bottom: 20px; box-shadow: 0 0 15px #00ff00; }
+        #typing-text { font-size: 32px; font-weight: bold; min-height: 40px; }
+        #hero-sprite { position: absolute; z-index: 5; display: none; width: 120px; image-rendering: pixelated; pointer-events: none; }
+        #error-msg { color: #ff0000; height: 20px; margin-bottom: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -30,18 +34,27 @@
 
     <div id="login-screen" class="ui">
         <h2>IDENTIFY YOURSELF</h2>
-        <div onclick="startStory('OLEH', 'oleh.png')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
-        <div onclick="startStory('VIKTOR', 'viktor.png')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
-        <div onclick="startStory('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
+        
+        <div class="char-container">
+            <div onclick="setChar('OLEH', 'oleh.png')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
+            <div onclick="setChar('VIKTOR', 'viktor.png')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
+            <div onclick="setChar('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
+        </div>
+
+        <p>АБО ВВЕДІТЬ СВОЄ ІМ'Я:</p>
+        <input type="text" id="userName" maxlength="12" placeholder="NEO" autocomplete="off">
+        <div id="error-msg"></div>
+        <br>
+        <button class="btn" onclick="validateAndStart()">ІНІЦІАЛІЗАЦІЯ</button>
     </div>
 
     <div id="story-screen" class="ui">
-        <img id="story-img" src="Vov.png" class="story-img">
-        <p id="story-text">Система стабільна. Офіс 2026 працює в штатному режимі...</p>
-        <button class="btn" onclick="nextStory()">ПРОДОВЖИТИ</button>
+        <img src="Vov.png" class="story-img">
+        <p>Львів. 2026 рік. Відділ розробки.<br>Система фіксує несанкціонований доступ...</p>
+        <button class="btn" onclick="startWakeUp()">ПРОДОВЖИТИ</button>
     </div>
 
-    <div id="final-animation" class="ui" style="border:none; background:none;">
+    <div id="final-animation" class="ui" style="border:none; background:none; box-shadow:none;">
         <div id="typing-text"></div>
     </div>
 
@@ -51,12 +64,18 @@
         let w = canvas.width = window.innerWidth;
         let h = canvas.height = window.innerHeight;
         
-        let selectedHero = "";
+        let selectedName = "";
         let heroImg = "";
-        let storyStep = 0;
 
-        // --- МАТРИЧНИЙ ДОЩ (Працює завжди на фоні) ---
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]";
+        // Словник для швидкого вибору
+        const heroes = {
+            'OLEH': 'oleh.png',
+            'VIKTOR': 'viktor.png',
+            'VOLODY': 'volodymyr.png'
+        };
+
+        // --- МАТРИЧНИЙ ДОЩ ---
+        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%";
         const fontSize = 16;
         const columns = Math.floor(w / fontSize);
         const drops = Array(columns).fill(1);
@@ -75,33 +94,37 @@
         }
         setInterval(drawMatrix, 50);
 
-        // --- ЛОГІКА ІСТОРІЇ ---
-        function startStory(name, img) {
-            selectedHero = name;
+        // --- ЛОГІКА КЕРУВАННЯ ---
+        function setChar(name, img) {
+            document.getElementById('userName').value = name;
+            selectedName = name;
             heroImg = img;
+            validateAndStart();
+        }
+
+        function validateAndStart() {
+            const input = document.getElementById('userName').value.trim();
+            const error = document.getElementById('error-msg');
+            
+            // Перевірка на кирилицю
+            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(input)) {
+                error.innerText = "Шо ти голова? Тільки латиниця!";
+                return;
+            }
+
+            selectedName = input || "NEO";
+            // Якщо ім'я не з нашого списку, залишаємо героя без картинки (або можна додати дефолтну)
+            heroImg = heroes[selectedName.toUpperCase()] || "";
+
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('story-screen').style.display = 'block';
         }
 
-        function nextStory() {
-            storyStep++;
-            const img = document.getElementById('story-img');
-            const txt = document.getElementById('story-text');
-            
-            if (storyStep === 1) {
-                img.src = "Vov1.png";
-                txt.innerText = "Зачекайте... щось не так. Код виходить з-під контролю!";
-            } else {
-                startWakeUp();
-            }
-        }
-
-        // --- ФІНАЛЬНА АНІМАЦІЯ (БЕЗ ЕМУЛЯТОРА) ---
         function startWakeUp() {
             document.getElementById('story-screen').style.display = 'none';
             document.getElementById('final-animation').style.display = 'block';
             
-            const text = `WAKE UP, ${selectedHero}...`;
+            const text = `WAKE UP, ${selectedName.toUpperCase()}...`;
             let i = 0;
             const target = document.getElementById('typing-text');
             
@@ -111,7 +134,7 @@
                     i++;
                     setTimeout(type, 150);
                 } else {
-                    setTimeout(spawnHero, 1000);
+                    if (heroImg) setTimeout(spawnHero, 800);
                 }
             }
             type();
@@ -122,14 +145,14 @@
             hero.src = heroImg;
             hero.style.display = 'block';
             hero.style.left = '50%';
-            hero.style.top = '70%';
+            hero.style.top = '75%';
             hero.style.transform = 'translate(-50%, -50%)';
             
-            // Робимо героя "живим" (легке погойдування)
             let angle = 0;
             setInterval(() => {
                 angle += 0.1;
-                hero.style.marginTop = Math.sin(angle) * 10 + "px";
+                hero.style.marginTop = Math.sin(angle) * 15 + "px";
+                hero.style.filter = `drop-shadow(0 0 ${10 + Math.sin(angle)*5}px #0f0)`;
             }, 30);
         }
 
