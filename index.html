@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matrix Mo 2026 - Story Expansion</title>
+    <title>Matrix Mo 2026 - Story Expansion: Viktor's Path</title>
     <style>
         body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: none; }
         canvas { position: absolute; top: 0; left: 0; z-index: 1; }
@@ -17,33 +17,33 @@
 
         .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid #00ff00; box-shadow: 0 0 25px #004400; width: 90%; max-width: 650px; box-sizing: border-box; }
         
+        /* Character Selection */
         .char-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; background: #000500; width: 28%; min-width: 90px; transition: 0.3s; animation: float 10s ease-in-out infinite; }
+        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; background: #000500; width: 28%; min-width: 90px; transition: 0.3s; animation: float 10s ease-in-out infinite; box-sizing: border-box; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         .mystic { border-color: #ff00ff !important; box-shadow: 0 0 10px #aa00aa; }
         .char-card img { width: 100%; max-width: 80px; image-rendering: pixelated; }
         
-        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 100%; max-width: 250px; outline: none; margin-bottom: 15px; }
-        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 12px 25px; cursor: pointer; font-size: 18px; width: 100%; max-width: 250px; }
+        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 100%; max-width: 250px; outline: none; margin-bottom: 15px; box-sizing: border-box; }
+        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 12px 25px; cursor: pointer; font-size: 18px; width: 100%; max-width: 250px; box-sizing: border-box; }
         .btn:hover { background: #00ff00; color: #000; }
 
-        #story-screen, #final-animation, #game-ui, #mobile-controls { display: none; }
-        
-        /* Story Image with Glitch Effect */
-        .story-img { width: 100%; max-height: 40vh; object-fit: contain; border: 1px solid #00ff00; margin-bottom: 20px; transition: 0.3s; }
+        #story-screen, #quest-screen, #final-animation, #game-ui, #mobile-controls { display: none; }
+        .story-img, .quest-img { width: 100%; max-height: 40vh; object-fit: contain; border: 1px solid #00ff00; margin-bottom: 20px; box-sizing: border-box; transition: 0.3s; }
         .glitch-active { animation: shake 0.2s infinite; filter: hue-rotate(90deg) contrast(150%); }
         @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(5px, -5px); } 50% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, 5px); } 100% { transform: translate(0); } }
         
-        .story-text-box { min-height: 80px; font-size: 16px; margin-bottom: 20px; line-height: 1.4; }
+        .story-text-box, .quest-text-box { min-height: 80px; font-size: 16px; margin-bottom: 20px; line-height: 1.4; box-sizing: border-box; }
 
         /* Game HUD */
-        #game-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; width: 90%; max-width: 300px; background: rgba(0,0,0,0.7); border: 1px solid #0f0; padding: 8px; text-align: center; font-size: 14px; }
+        #game-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; width: 90%; max-width: 300px; background: rgba(0,0,0,0.7); border: 1px solid #0f0; padding: 8px; text-align: center; font-size: 14px; box-sizing: border-box; }
         #sync-bar-container { width: 100%; height: 15px; border: 1px solid #0f0; margin-top: 5px; }
         #sync-bar { width: 0%; height: 100%; background: #0f0; }
 
-        /* Controls */
+        /* Mobile Controls */
         #mobile-controls { position: absolute; bottom: 30px; left: 0; width: 100%; display: none; justify-content: space-around; z-index: 1000; padding: 0 20px; box-sizing: border-box; }
-        .touch-btn { background: rgba(0, 50, 0, 0.6); color: #0f0; border: 2px solid #0f0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; border-radius: 10px; user-select: none; }
+        .touch-btn { background: rgba(0, 50, 0, 0.6); color: #0f0; border: 2px solid #0f0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; border-radius: 10px; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .touch-btn:active { background: #0f0; color: #000; }
 
         #hero-sprite { position: absolute; z-index: 5; display: none; width: 70px; image-rendering: pixelated; pointer-events: none; }
         #error-msg { color: #ff0000; font-size: 14px; height: 20px; }
@@ -66,13 +66,20 @@
 
     <div id="login-screen" class="ui">
         <h3>IDENTIFY YOURSELF</h3>
+        
         <div class="char-container">
             <div onclick="setChar('OLEH', 'oleh.png')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
             <div onclick="setChar('VIKTOR', 'viktor.png')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
             <div onclick="setChar('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДЯ</div>
             <div onclick="setChar('ANNA', 'anna.png')" class="char-card mystic"><img src="anna.png"><br>АННА</div>
         </div>
-        <input type="text" id="userName" maxlength="12" placeholder="ENTER NAME">
+
+        <p>АБО ВІДКРИЙТЕ ІСТОРІЮ:</p>
+        <div class="char-container">
+            <div onclick="startViktorStory()" class="char-card story-viktor" style="width: 100%; border-color: #0f0; box-shadow: 0 0 10px #040;"><img src="viktor.png"><br>ТІНЬ У КОДІ</div>
+        </div>
+
+        <input type="text" id="userName" maxlength="12" placeholder="ВВЕДІТЬ ІМ'Я">
         <div id="error-msg"></div>
         <button class="btn" onclick="validateAndStart()">INITIALIZE</button>
     </div>
@@ -87,11 +94,17 @@
         <div id="typing-text" style="font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #0f0;"></div>
     </div>
 
+    <div id="quest-screen" class="ui">
+        <img src="" id="quest-image-element" class="quest-img">
+        <div class="quest-text-box" id="quest-text-element"></div>
+        <button class="btn" onclick="nextQuestScene()">[КЛІКНІТЬ ДЛЯ ПРОДОВЖЕННЯ]</button>
+    </div>
+
     <script>
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         let w, h, selectedName = "", heroImg = "", isGaming = false, syncScore = 0, heroX = 0;
-        let moveLeft = false, moveRight = false, currentSceneIndex = 0;
+        let moveLeft = false, moveRight = false, currentSceneIndex = 0, currentQuestIndex = 0;
         
         const heroes = {'OLEH': 'oleh.png', 'VIKTOR': 'viktor.png', 'VOLODY': 'volodymyr.png', 'ANNA': 'anna.png'};
         const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%".split("");
@@ -99,173 +112,156 @@
         let drops = [];
         const fragments = [];
 
-        // ІСТОРІЯ ТА СЦЕНИ
+        // ІСТОРІЯ ТА СЦЕНИ (Стара логіка)
         const scenes = [
-            {
-                text: (name) => `Львів. 2026 рік. Відділ розробки. ${name} закінчує черговий рядок коду. Навколо тиша...`,
-                glitch: false
-            },
-            {
-                text: (name) => `Раптом курсор зупиняється. Монітор ${name} починає дивно блимати. Ви відчуваєте холод від екрана.`,
-                glitch: true
-            },
-            {
-                text: (name) => `Система виходить з-під контролю! Реальність розпадається на пікселі. Час обирати: синя чи зелена?`,
-                glitch: true
-            }
+            { text: (name) => `Львів. 2026 рік. Відділ розробки. ${name} закінчує черговий рядок коду. Навколо тиша...`, glitch: false },
+            { text: (name) => `Раптом курсор зупиняється. Монітор ${name} починає дивно блимати. Ви відчуваєте холод від екрана.`, glitch: true },
+            { text: (name) => `Система виходить з-під контролю! Реальність розпадається на пікселі. Час обирати: синя чи зелена?`, glitch: true }
+        ];
+
+        // КВЕСТОВІ СЦЕНИ (Тінь у Коді)
+        const questScenes = [
+            { img: 'vik_quest_1.png', text: 'Віктор розпочинає доступ. Система реагує Caution. "ACCESSING REALITY...".' },
+            { img: 'vik_quest_2.png', text: 'Виявлено обладнання. Віктор екіпірує жилет. "NOW WE'RE TALKING...".' },
+            { img: 'vik_quest_3.png', text: 'Віктор обходить протокол безпеки. Вхід до Reality Core. "BYPASSING SECURITY PROTOCOL: Level_3. STABILIZING reality_core.obj".' },
+            { img: 'vik_quest_4.png', text: 'Агенти виявлені. "SYNC STATUS: CRITICAL! AGENTS DETECTED.". Бій. Віктор, тримай фокус!' }
         ];
 
         function initCanvas() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-            heroX = w / 2;
-            const columns = Math.floor(w / fontSize);
-            drops = Array(columns).fill(1);
+            w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+            heroX = w / 2; const columns = Math.floor(w / fontSize); drops = Array(columns).fill(1);
         }
-        window.addEventListener('resize', initCanvas);
-        initCanvas();
+        window.addEventListener('resize', initCanvas); initCanvas();
 
         function drawRain() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-            ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = "#0f0";
-            ctx.font = fontSize + "px monospace";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, w, h); ctx.fillStyle = "#0f0"; ctx.font = fontSize + "px monospace";
             for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > h && Math.random() > 0.99) drops[i] = 0;
-                drops[i]++;
+                const text = chars[Math.floor(Math.random() * chars.length)]; ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > h && Math.random() > 0.99) drops[i] = 0; drops[i]++;
             }
         }
         setInterval(drawRain, 150);
 
-        function typeWriter(text, i, fnCallback) {
+        function typeWriter(text, elementId, i, fnCallback) {
             if (i < text.length) {
-                document.getElementById('story-text-element').innerHTML = text.substring(0, i+1) + '<span aria-hidden="true">_</span>';
-                setTimeout(() => typeWriter(text, i + 1, fnCallback), 30);
-            } else if (typeof fnCallback == 'function') {
-                setTimeout(fnCallback, 500);
-            }
+                document.getElementById(elementId).innerHTML = text.substring(0, i+1) + '<span aria-hidden="true">_</span>';
+                setTimeout(() => typeWriter(text, elementId, i + 1, fnCallback), 30);
+            } else if (typeof fnCallback == 'function') { setTimeout(fnCallback, 500); }
         }
 
+        // Logic
         function setChar(name, img) { document.getElementById('userName').value = name; validateAndStart(); }
 
         function validateAndStart() {
             const input = document.getElementById('userName').value.trim();
             if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(input)) { document.getElementById('error-msg').innerText = "LATIN ONLY!"; return; }
-            selectedName = input || "NEO";
-            heroImg = heroes[selectedName.toUpperCase()] || "viktor.png";
+            selectedName = input || "NEO"; heroImg = heroes[selectedName.toUpperCase()] || "viktor.png";
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('story-screen').style.display = 'block';
             renderScene();
         }
 
         function renderScene() {
-            const scene = scenes[currentSceneIndex];
-            const img = document.getElementById('story-image-element');
-            
-            if(scene.glitch) img.classList.add('glitch-active');
-            else img.classList.remove('glitch-active');
-
-            typeWriter(scene.text(selectedName), 0);
+            const scene = scenes[currentSceneIndex]; const img = document.getElementById('story-image-element');
+            if(scene.glitch) img.classList.add('glitch-active'); else img.classList.remove('glitch-active');
+            typeWriter(scene.text(selectedName), 'story-text-element', 0);
         }
 
         function nextScene() {
-            currentSceneIndex++;
-            if (currentSceneIndex < scenes.length) {
-                renderScene();
+            currentSceneIndex++; if (currentSceneIndex < scenes.length) renderScene(); else startWakeUp();
+        }
+
+        // КВЕСТОВА ЛОГІКА
+        function startViktorStory() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('quest-screen').style.display = 'block';
+            renderQuestScene();
+        }
+
+        function renderQuestScene() {
+            const scene = questScenes[currentQuestIndex];
+            document.getElementById('quest-image-element').src = scene.img;
+            typeWriter(scene.text, 'quest-text-element', 0);
+        }
+
+        function nextQuestScene() {
+            currentQuestIndex++;
+            if (currentQuestIndex < questScenes.length) {
+                renderQuestScene();
             } else {
-                startWakeUp();
+                showViktorLast();
             }
         }
 
+        function showViktorLast() {
+            document.getElementById('quest-screen').style.display = 'none';
+            const fin = document.getElementById('story-screen');
+            fin.style.display = 'block';
+            document.getElementById('story-image-element').src = 'vik_last.png';
+            document.getElementById('story-next-btn').style.display = 'none';
+            typeWriter('REALITY PATCH 1.0 INSTALLED. СИСТЕМУ СТАБІЛІЗОВАНО. ВІТАЄМО У РЕАЛЬНОСТІ, ВІКТОР.', 'story-text-element', 0, () => {
+                setTimeout(() => location.reload(), 5000);
+            });
+        }
+
         function startWakeUp() {
-            document.getElementById('story-screen').style.display = 'none';
-            document.getElementById('final-animation').style.display = 'block';
-            const text = `WAKE UP, ${selectedName.toUpperCase()}...`;
-            let i = 0;
+            document.getElementById('story-screen').style.display = 'none'; document.getElementById('final-animation').style.display = 'block';
+            const text = `WAKE UP, ${selectedName.toUpperCase()}...`; let i = 0;
             function type() {
                 if (i < text.length) {
-                    document.getElementById('typing-text').innerHTML += text.charAt(i);
-                    i++; setTimeout(type, 150);
+                    document.getElementById('typing-text').innerHTML += text.charAt(i); i++; setTimeout(type, 150);
                 } else {
-                    setTimeout(() => {
-                        document.getElementById('final-animation').style.display = 'none';
-                        spawnHero();
-                    }, 1000);
+                    setTimeout(() => { document.getElementById('final-animation').style.display = 'none'; spawnHero(); }, 1000);
                 }
             }
             type();
         }
 
         // GAMEPLAY LOGIC
-        function gameLoop() {
-            if (isGaming) updateGame();
-            requestAnimationFrame(gameLoop);
-        }
-        gameLoop();
+        function gameLoop() { if (isGaming) updateGame(); requestAnimationFrame(gameLoop); } gameLoop();
 
         function updateGame() {
-            if (Math.random() > 0.96) {
-                fragments.push({ x: Math.random() * (w - 20), y: -20, char: chars[Math.floor(Math.random()*chars.length)] });
-            }
-            ctx.fillStyle = (selectedName.toUpperCase() === "ANNA") ? "#ff00ff" : "#fff";
-            ctx.font = "bold 24px monospace";
+            if (Math.random() > 0.96) fragments.push({ x: Math.random() * (w - 20), y: -20, char: chars[Math.floor(Math.random()*chars.length)] });
+            ctx.fillStyle = (selectedName.toUpperCase() === "ANNA") ? "#ff00ff" : "#fff"; ctx.font = "bold 24px monospace";
             for (let i = fragments.length - 1; i >= 0; i--) {
-                fragments[i].y += 4;
-                ctx.fillText(fragments[i].char, fragments[i].x, fragments[i].y);
-                const hero = document.getElementById('hero-sprite');
-                const hRect = hero.getBoundingClientRect();
-                if (fragments[i].y > hRect.top && fragments[i].y < hRect.bottom &&
-                    fragments[i].x > hRect.left && fragments[i].x < hRect.right) {
+                fragments[i].y += 4; ctx.fillText(fragments[i].char, fragments[i].x, fragments[i].y);
+                const hero = document.getElementById('hero-sprite'); const hRect = hero.getBoundingClientRect();
+                if (fragments[i].y > hRect.top && fragments[i].y < hRect.bottom && fragments[i].x > hRect.left && fragments[i].x < hRect.right) {
                     fragments.splice(i, 1); updateSync(5); continue;
                 }
                 if (fragments[i].y > h) fragments.splice(i, 1);
             }
-            if (moveLeft) heroX -= 6;
-            if (moveRight) heroX += 6;
-            if (heroX < 40) heroX = w - 40 ? w - 40 : heroX; 
-            if (heroX > w - 40) heroX = w - 40;
-            if (heroX < 40) heroX = 40;
+            if (moveLeft) heroX -= 6; if (moveRight) heroX += 6;
+            if (heroX < 40) heroX = 40; if (heroX > w - 40) heroX = w - 40;
             document.getElementById('hero-sprite').style.left = heroX + "px";
         }
 
         function updateSync(val) {
-            syncScore += val;
-            if (syncScore > 100) syncScore = 100;
-            document.getElementById('sync-val').innerText = syncScore;
-            document.getElementById('sync-bar').style.width = syncScore + "%";
-            if (syncScore === 100 && isGaming) {
-                isGaming = false;
-                alert("SYSTEM SYNC 100%. СВІТ ВЖЕ НЕ БУДЕ ТАКИМ ЯК РАНІШЕ.");
-                location.reload();
-            }
+            syncScore += val; if (syncScore > 100) syncScore = 100;
+            document.getElementById('sync-val').innerText = syncScore; document.getElementById('sync-bar').style.width = syncScore + "%";
+            if (syncScore === 100 && isGaming) { isGaming = false; alert("SYSTEM SYNC 100%. СВІТ ЗМІНИВСЯ."); location.reload(); }
         }
 
         // CONTROLS
         window.addEventListener('keydown', (e) => {
-            if (e.key === "ArrowLeft" || e.key === "a") moveLeft = true;
-            if (e.key === "ArrowRight" || e.key === "d") moveRight = true;
+            if (!isGaming) return;
+            if (e.key === "ArrowLeft" || e.key === "a") moveLeft = true; if (e.key === "ArrowRight" || e.key === "d") moveRight = true;
         });
         window.addEventListener('keyup', (e) => {
-            if (e.key === "ArrowLeft" || e.key === "a") moveLeft = false;
-            if (e.key === "ArrowRight" || e.key === "d") moveRight = false;
+            if (!isGaming) return;
+            if (e.key === "ArrowLeft" || e.key === "a") moveLeft = false; if (e.key === "ArrowRight" || e.key === "d") moveRight = false;
         });
-
         const setupBtn = (id, side) => {
-            const btn = document.getElementById(id);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if(side === 'L') moveLeft = true; else moveRight = true; });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); if(side === 'L') moveLeft = false; else moveRight = false; });
+            const btn = document.getElementById(id); const start = (e) => { e.preventDefault(); if(side === 'L') moveLeft = true; else moveRight = true; };
+            const stop = (e) => { e.preventDefault(); if(side === 'L') moveLeft = false; else moveRight = false; };
+            btn.addEventListener('touchstart', start); btn.addEventListener('touchend', stop); btn.addEventListener('mousedown', start); btn.addEventListener('mouseup', stop);
         };
         setupBtn('btn-left', 'L'); setupBtn('btn-right', 'R');
 
         function spawnHero() {
-            const hero = document.getElementById('hero-sprite');
-            hero.src = heroImg; hero.style.display = 'block'; hero.style.top = (h - 150) + "px";
+            const hero = document.getElementById('hero-sprite'); hero.src = heroImg; hero.style.display = 'block'; hero.style.top = (h - 150) + "px";
             if (selectedName.toUpperCase() === "ANNA") hero.style.filter = "drop-shadow(0 0 15px #f0f) hue-rotate(280deg)";
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('mobile-controls').style.display = 'flex';
-            isGaming = true;
+            document.getElementById('game-ui').style.display = 'block'; document.getElementById('mobile-controls').style.display = 'flex'; isGaming = true;
         }
     </script>
 </body>
