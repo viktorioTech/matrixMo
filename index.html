@@ -2,230 +2,117 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>NES Matrix - Character Selection</title>
+    <title>NES Matrix 2026</title>
     <style>
-        body { 
-            background-color: #000; 
-            color: #00ff00; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
-            font-family: 'Courier New', Courier, monospace; 
-            overflow: hidden;
-            user-select: none;
-            position: relative; /* Для ефекту монітора */
-        }
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #matrix-bg { position: absolute; top: 0; left: 0; z-index: -1; opacity: 0.3; }
+        .screen { text-align: center; display: none; max-width: 800px; }
+        #login-screen { display: block; } /* Початковий екран */
         
-        /* Ефект старого телевізора (Scanlines) */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            z-index: 999;
-            pointer-events: none; /* Щоб не заважало клікати */
-        }
+        .char-card { border: 2px solid #005500; padding: 10px; cursor: pointer; display: inline-block; margin: 10px; transition: 0.3s; background: #001100; }
+        .char-card:hover { border-color: #00ff00; transform: scale(1.1); box-shadow: 0 0 15px #00ff00; }
+        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; }
 
-        /* Задній фон з Матричним дощем */
-        #matrix-bg {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            opacity: 0.5;
-        }
-        
-        /* Екран логіну */
-        #login-screen { text-align: center; max-width: 600px; z-index: 10; position: relative; }
-        
-        /* Анімація Глітчу для заголовка */
-        h2 { text-shadow: 2px 0px 5px #00ff00, -2px 0px 5px #008800; animation: glitch 3s infinite; }
-        @keyframes glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 1px) }
-            40% { transform: translate(-1px, -1px) }
-            60% { transform: translate(2px, 1px) }
-            80% { transform: translate(1px, -1px) }
-            100% { transform: translate(0) }
-        }
-
-        .char-container { display: flex; gap: 30px; justify-content: center; margin-bottom: 30px; margin-top: 20px;}
-        
-        /* Картки героїв + Анімація левітації */
-        .char-card { 
-            border: 2px solid #005500; padding: 15px; cursor: pointer; transition: 0.3s; 
-            background-color: rgba(0, 17, 0, 0.8); 
-            animation: float 4s ease-in-out infinite; /* Левітація */
-        }
-        /* Різна затримка, щоб вони гойдалися не одночасно */
-        .char-card:nth-child(1) { animation-delay: 0s; }
-        .char-card:nth-child(2) { animation-delay: 1.5s; }
-        .char-card:nth-child(3) { animation-delay: 3s; }
-        
-        @keyframes float {
-            0% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
-            50% { transform: translateY(-15px); box-shadow: 0 15px 15px #00ff00; border-color: #00ff00; }
-            100% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
-        }
-
-        .char-card:hover { background-color: #003300; transform: scale(1.1) !important; animation-play-state: paused; }
-        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; margin-bottom: 10px; }
-        .char-name { font-weight: bold; font-size: 18px; text-shadow: 0 0 5px #00ff00;}
-        
-        input[type="text"] { background-color: #000; color: #00ff00; border: 1px solid #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 20px; padding: 8px; text-transform: uppercase; text-align: center; width: 180px; margin-bottom: 10px; outline: none; z-index: 10; position: relative;}
-        .start-btn { background-color: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 18px; z-index: 10; position: relative;}
-        .start-btn:hover { background-color: #00ff00; color: #000; box-shadow: 0 0 10px #00ff00;}
-        #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; text-shadow: 0 0 5px red; }
-
-        /* Екран історії та гри */
-        #scene-screen { display: none; text-align: center; max-width: 600px; z-index: 10; position: relative;}
-        .office-scene { width: 100%; max-width: 500px; border: 2px solid #00ff00; image-rendering: pixelated; margin-bottom: 20px; box-shadow: 0 0 30px #008800; }
-        .loading-text { font-size: 24px; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
-
-        canvas#nes-canvas { border: 2px solid #00ff00; image-rendering: pixelated; width: 512px; height: 480px; display: none; box-shadow: 0 0 30px #00ff00; z-index: 10; position: relative;}
+        .story-img { width: 100%; max-width: 500px; border: 2px solid #00ff00; margin-bottom: 20px; box-shadow: 0 0 20px #004400; }
+        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: inherit; font-size: 18px; }
+        canvas#nes-canvas { border: 2px solid #00ff00; width: 512px; height: 480px; display: none; }
     </style>
 </head>
 <body>
 
     <canvas id="matrix-bg"></canvas>
 
-    <div id="login-screen">
+    <div id="login-screen" class="screen">
         <h2>ОБЕРІТЬ СВОГО АВАТАРА</h2>
-        <div class="char-container">
-            <div class="char-card" onclick="prepareScene('OLEH')">
-                <img src="oleh.png" alt="Олег">
-                <div class="char-name">ОЛЕГ</div>
-            </div>
-            <div class="char-card" onclick="prepareScene('VIKTOR')">
-                <img src="viktor.png" alt="Віктор">
-                <div class="char-name">ВІКТОР</div>
-            </div>
-            <div class="char-card" onclick="prepareScene('VOLODY')">
-                <img src="volodymyr.png" alt="Володимир">
-                <div class="char-name">ВОЛОДИМИР</div>
-            </div>
-        </div>
-        <p>АБО ВВЕДІТЬ КОДОВЕ ІМ'Я:</p>
-        <input type="text" id="userName" maxlength="6" placeholder="NEO">
-        <br>
-        <button class="start-btn" onclick="prepareScene()">ІНІЦІАЛІЗАЦІЯ</button>
-        <p id="error-msg" style="color: red; display: none;"></p>
+        <div onclick="startStory('OLEH')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
+        <div onclick="startStory('VIKTOR')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
+        <div onclick="startStory('VOLODY')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
     </div>
 
-    <div id="scene-screen">
-        <h2 id="scene-title">ЛОКАЦІЯ: ОФІС 2026</h2>
-        <img src="Vov1.png" class="office-scene" alt="Office Scene">
-        <p class="loading-text">ВСТАНОВЛЕННЯ ЗВ'ЯЗКУ З <span id="target-name">...</span></p>
+    <div id="story-1" class="screen">
+        <img src="Vov.png" class="story-img">
+        <p>Львів. 2026 рік. Офіс компанії.<br>Звичайний робочий день підходить до кінця...</p>
+        <button class="btn" onclick="showStory2()">ПРОДОВЖИТИ</button>
+    </div>
+
+    <div id="story-2" class="screen">
+        <img src="Vov1.png" class="story-img">
+        <p id="anomaly-text">Раптом на моніторі з'являється аномальний код...</p>
+        <button class="btn" onclick="launchNES()">УВІЙТИ В МАТРИЦЮ</button>
     </div>
 
     <canvas id="nes-canvas" width="256" height="240"></canvas>
 
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
     <script>
-        // --- АНІМАЦІЯ МАТРИЧНОГО ДОЩУ (HTML Canvas) ---
-        const bgCanvas = document.getElementById('matrix-bg');
-        const bgCtx = bgCanvas.getContext('2d');
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
-        
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789АБВГДЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'.split('');
-        const fontSize = 16;
-        const columns = bgCanvas.width / fontSize;
-        const drops = [];
-        for(let x = 0; x < columns; x++) drops[x] = 1;
+        let selectedHero = "NEO";
 
-        function drawBg() {
-            bgCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
-            bgCtx.fillStyle = '#0F0';
-            bgCtx.font = fontSize + 'px monospace';
-            for(let i = 0; i < drops.length; i++) {
-                const text = letters[Math.floor(Math.random() * letters.length)];
-                bgCtx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if(drops[i] * fontSize > bgCanvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
+        // Фоновий дощ
+        const bg = document.getElementById('matrix-bg');
+        const ctxBg = bg.getContext('2d');
+        bg.width = window.innerWidth; bg.height = window.innerHeight;
+        const drops = Array(Math.floor(bg.width/16)).fill(1);
+        function drawRain() {
+            ctxBg.fillStyle = 'rgba(0,0,0,0.05)'; ctxBg.fillRect(0,0,bg.width,bg.height);
+            ctxBg.fillStyle = '#0F0'; drops.forEach((y, i) => {
+                ctxBg.fillText(String.fromCharCode(Math.random()*128), i*16, y*16);
+                if(y*16 > bg.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
         }
-        let bgInterval = setInterval(drawBg, 33); // Запускаємо дощ
+        setInterval(drawRain, 50);
 
-        // --- ЛОГІКА ПЕРЕХОДІВ ---
-        function prepareScene(name) {
-            if (name) document.getElementById('userName').value = name;
-            let rawInput = document.getElementById('userName').value;
-            const errorMsg = document.getElementById('error-msg');
-            
-            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(rawInput)) {
-                errorMsg.innerText = "Шо ти голова?";
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            let finalName = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '') || "NEO";
-            
-            // Ховаємо меню і вимикаємо фоновий дощ (щоб не гальмувало гру)
+        // Логіка перемикання екранів
+        function startStory(name) {
+            selectedHero = name;
             document.getElementById('login-screen').style.display = 'none';
-            clearInterval(bgInterval); 
-            document.getElementById('matrix-bg').style.display = 'none';
-
-            // Показуємо сюжет
-            document.getElementById('scene-screen').style.display = 'block';
-            document.getElementById('target-name').innerText = finalName;
-
-            setTimeout(() => { startMatrix(finalName); }, 3000);
+            document.getElementById('story-1').style.display = 'block';
         }
 
-        // --- ЛОГІКА ЕМУЛЯТОРА NES ---
-        const canvas = document.getElementById('nes-canvas');
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.createImageData(256, 240);
-        const buf = new Uint32Array(imageData.data.buffer);
+        function showStory2() {
+            document.getElementById('story-1').style.display = 'none';
+            document.getElementById('story-2').style.display = 'block';
+            document.getElementById('anomaly-text').innerText = `На моніторі ${selectedHero} з'являється аномальний код...`;
+        }
 
-        const nes = new jsnes.NES({
-            onFrame: (frameBuffer) => {
-                for (var i = 0; i < 256 * 240; i++) buf[i] = 0xFF000000 | frameBuffer[i];
-                ctx.putImageData(imageData, 0, 0);
-            }
-        });
-
-        async function startMatrix(nameInput) {
-            document.getElementById('scene-screen').style.display = 'none';
+        async function launchNES() {
+            document.getElementById('story-2').style.display = 'none';
+            const canvas = document.getElementById('nes-canvas');
             canvas.style.display = 'block';
-            nameInput = nameInput.padEnd(6, ' ').substring(0, 6);
 
-            try {
-                const response = await fetch('matrix.nes');
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-
-                let offset = -1;
-                for (let i = 0; i < data.length - 6; i++) {
-                    if (data[i] === 86 && data[i+1] === 73 && data[i+2] === 75 &&
-                        data[i+3] === 84 && data[i+4] === 79 && data[i+5] === 82) {
-                        offset = i; break;
-                    }
+            const nes = new jsnes.NES({
+                onFrame: (fb) => {
+                    const ctx = canvas.getContext('2d');
+                    const img = ctx.createImageData(256, 240);
+                    const u32 = new Uint32Array(img.data.buffer);
+                    for(let i=0; i<256*240; i++) u32[i] = 0xFF000000 | fb[i];
+                    ctx.putImageData(img, 0, 0);
                 }
-                if (offset !== -1) {
-                    for (let i = 0; i < 6; i++) data[offset + i] = nameInput.charCodeAt(i);
-                }
+            });
 
-                let binary = "";
-                for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
-                nes.loadROM(binary);
-                
-                const keyboard = (keyCode, event) => {
-                    const map = { 38: 16, 40: 32, 37: 64, 39: 128, 88: 1, 90: 2, 13: 8, 32: 4 };
-                    if (map[keyCode]) event === 'down' ? nes.buttonDown(1, map[keyCode]) : nes.buttonUp(1, map[keyCode]);
-                };
-                window.addEventListener("keydown", (e) => keyboard(e.keyCode, 'down'));
-                window.addEventListener("keyup", (e) => keyboard(e.keyCode, 'up'));
+            const res = await fetch('matrix.nes');
+            const ab = await res.arrayBuffer();
+            const data = new Uint8Array(ab);
 
-                setInterval(() => { nes.frame(); }, 16.6);
-            } catch (err) { alert("Системна помилка: " + err.message); }
+            // ШУКАЄМО VIKTOR І ЗАМІНЮЄМО НА HERO
+            const pattern = [86, 73, 75, 84, 79, 82]; // V-I-K-T-O-R
+            let offset = -1;
+            for(let i=0; i<data.length-6; i++) {
+                if(pattern.every((byte, j) => data[i+j] === byte)) { offset = i; break; }
+            }
+            if(offset !== -1) {
+                const name = selectedHero.padEnd(6, ' ');
+                for(let i=0; i<6; i++) data[offset+i] = name.charCodeAt(i);
+            }
+
+            let bin = ""; for(let i=0; i<data.length; i++) bin += String.fromCharCode(data[i]);
+            nes.loadROM(bin);
+            
+            // Керування
+            const map = {38:16, 40:32, 37:64, 39:128, 88:1, 90:2, 13:8, 32:4};
+            window.onkeydown = (e) => { if(map[e.keyCode]) nes.buttonDown(1, map[e.keyCode]); };
+            window.onkeyup = (e) => { if(map[e.keyCode]) nes.buttonUp(1, map[e.keyCode]); };
+            
+            setInterval(() => nes.frame(), 16);
         }
     </script>
 </body>
