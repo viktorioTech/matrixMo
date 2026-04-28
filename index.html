@@ -2,224 +2,266 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Matrix Mo 2026 - Mystical Update</title>
+    <title>NES Matrix Mo 2026 - Optimized Interface</title>
     <style>
-        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.85); padding: 30px; border: 1px solid #00ff00; box-shadow: 0 0 25px #004400; max-width: 750px; }
+        body { 
+            background-color: #000; 
+            color: #00ff00; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Courier New', Courier, monospace; 
+            overflow: hidden;
+            user-select: none;
+            position: relative; /* Для ефекту монітора */
+        }
         
-        .char-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; transition: 0.3s; background: #000500; width: 110px; }
-        .char-card:hover { border-color: #00ff00; transform: scale(1.05); box-shadow: 0 0 15px #00ff00; }
-        
-        /* Спеціальний стиль для Анни */
-        .mystic { border-color: #ff00ff !important; box-shadow: 0 0 10px #aa00aa; }
-        .mystic:hover { box-shadow: 0 0 20px #ff00ff !important; }
+        /* Ефект старого монітора (Scanlines) */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none; /* Щоб не заважало клікати */
+        }
 
-        .char-card img { width: 80px; height: 80px; image-rendering: pixelated; }
+        /* Задній фон з Матричним дощем */
+        #matrix-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            opacity: 0.5;
+        }
         
-        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 250px; outline: none; margin-bottom: 15px; }
-        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 25px; cursor: pointer; font-size: 18px; transition: 0.2s; }
-        .btn:hover { background: #00ff00; color: #000; }
-
-        #story-screen, #final-animation, #game-ui { display: none; }
-        .story-img { width: 100%; max-width: 500px; border: 1px solid #00ff00; margin-bottom: 20px; }
+        /* Екран логіну */
+        #login-screen { text-align: center; max-width: 600px; z-index: 10; position: relative; }
         
-        #game-ui { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20; width: 300px; background: rgba(0,0,0,0.7); border: 1px solid #0f0; padding: 10px; text-align: center; }
-        #sync-bar-container { width: 100%; height: 20px; border: 1px solid #0f0; margin-top: 5px; }
-        #sync-bar { width: 0%; height: 100%; background: #0f0; transition: 0.1s; }
+        /* Анімація заголовка (глітч) - Сповільнена */
+        h2 { text-shadow: 2px 0px 5px #00ff00, -2px 0px 5px #008800; animation: glitch 6s infinite; }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            10% { transform: translate(-2px, 1px) }
+            20% { transform: translate(-1px, -1px) }
+            30% { transform: translate(2px, 1px) }
+            40% { transform: translate(1px, -1px) }
+            100% { transform: translate(0) }
+        }
 
-        #typing-text { font-size: 32px; font-weight: bold; }
-        #hero-sprite { position: absolute; z-index: 5; display: none; width: 80px; image-rendering: pixelated; pointer-events: none; }
-        #error-msg { color: #ff0000; height: 20px; margin-bottom: 10px; }
+        .char-container { display: flex; gap: 30px; justify-content: center; margin-bottom: 30px; margin-top: 20px;}
+        
+        /* Картки героїв + Анімація левітації - Змінено на 10 секунд (ДУЖЕ ПЛАВНО) */
+        .char-card { 
+            border: 2px solid #005500; padding: 15px; cursor: pointer; transition: 0.3s; 
+            background-color: rgba(0, 17, 0, 0.8); 
+            animation: float 10s ease-in-out infinite; /* Набагато повільніше погойдування */
+        }
+        /* Різна затримка, щоб вони гойдалися не одночасно */
+        .char-card:nth-child(1) { animation-delay: 0s; }
+        .char-card:nth-child(2) { animation-delay: 3s; }
+        .char-card:nth-child(3) { animation-delay: 6s; }
+        
+        /* Плавні ключові кадри левітації - Зменшено діапазон руху */
+        @keyframes float {
+            0% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
+            50% { transform: translateY(-10px); box-shadow: 0 10px 15px #00ff00; border-color: #00ff00; }
+            100% { transform: translateY(0px); box-shadow: 0 0 5px #005500; }
+        }
+
+        .char-card:hover { background-color: #003300; transform: scale(1.1) !important; animation-play-state: paused; }
+        .char-card img { width: 100px; height: 100px; image-rendering: pixelated; margin-bottom: 10px; }
+        .char-name { font-weight: bold; font-size: 18px; text-shadow: 0 0 5px #00ff00;}
+        
+        /* Поле ручного введення */
+        input[type="text"] { background-color: #000; color: #00ff00; border: 1px solid #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 20px; padding: 8px; text-transform: uppercase; text-align: center; width: 180px; margin-bottom: 10px; outline: none; z-index: 10; position: relative;}
+        
+        /* Основна кнопка запуску */
+        .start-btn { background-color: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 18px; z-index: 10; position: relative;}
+        .start-btn:hover { background-color: #00ff00; color: #000; box-shadow: 0 0 10px #00ff00;}
+        
+        #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; text-shadow: 0 0 5px red; }
+
+        /* Екрани історії та гри */
+        #scene-screen { display: none; text-align: center; max-width: 600px; z-index: 10; position: relative;}
+        .office-scene { width: 100%; max-width: 500px; border: 2px solid #00ff00; image-rendering: pixelated; margin-bottom: 20px; box-shadow: 0 0 30px #008800; }
+        
+        /* Миготливий текст завантаження - Теж трохи сповільнено */
+        .loading-text { font-size: 24px; animation: blink 2s infinite; }
+        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+        canvas#nes-canvas { border: 2px solid #00ff00; image-rendering: pixelated; width: 512px; height: 480px; display: none; box-shadow: 0 0 30px #00ff00; z-index: 10; position: relative;}
     </style>
 </head>
 <body>
 
-    <canvas id="matrix-canvas"></canvas>
-    
-    <div id="game-ui">
-        <div>SYSTEM SYNC: <span id="sync-val">0</span>%</div>
-        <div id="sync-bar-container"><div id="sync-bar"></div></div>
-        <div style="font-size: 11px; margin-top: 5px;">СТРІЛКИ АБО A/D ЩОБ РУХАТИСЬ</div>
-    </div>
+    <canvas id="matrix-bg"></canvas>
 
-    <img id="hero-sprite" src="" alt="Hero">
-
-    <div id="login-screen" class="ui">
-        <h2>IDENTIFY YOURSELF</h2>
+    <div id="login-screen">
+        <h2>ОБЕРІТЬ СВОГО АВАТАРА</h2>
         <div class="char-container">
-            <div onclick="setChar('OLEH', 'oleh.png')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
-            <div onclick="setChar('VIKTOR', 'viktor.png')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
-            <div onclick="setChar('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
-            <div onclick="setChar('ANNA', 'anna.png')" class="char-card mystic"><img src="anna.png"><br>АННА</div>
+            <div class="char-card" onclick="prepareScene('OLEH')">
+                <img src="oleh.png" alt="Олег">
+                <div class="char-name">ОЛЕГ</div>
+            </div>
+            
+            <div class="char-card" onclick="prepareScene('VIKTOR')">
+                <img src="viktor.png" alt="Віктор">
+                <div class="char-name">ВІКТОР</div>
+            </div>
+            
+            <div class="char-card" onclick="prepareScene('VOLODY')">
+                <img src="volodymyr.png" alt="Володимир">
+                <div class="char-name">ВОЛОДИМИР</div>
+            </div>
         </div>
-        <input type="text" id="userName" maxlength="12" placeholder="NEO">
-        <div id="error-msg"></div>
-        <button class="btn" onclick="validateAndStart()">ІНІЦІАЛІЗАЦІЯ</button>
+
+        <p>АБО ВВЕДІТЬ КОДОВЕ ІМ'Я:</p>
+        <input type="text" id="userName" maxlength="6" placeholder="NEO" autocomplete="off" spellcheck="false">
+        <button class="start-btn" onclick="startMatrix()">ІНІЦІАЛІЗАЦІЯ</button>
+        <p id="error-msg" style="color: red; display: none;"></p>
     </div>
 
-    <div id="story-screen" class="ui">
-        <img src="Vov.png" class="story-img">
-        <p id="story-para">Львів. 2026 рік. Відділ розробки.<br>Збирай шматки коду, щоб стабілізувати систему!</p>
-        <button class="btn" onclick="startWakeUp()">ПРОДОВЖИТИ</button>
+    <div id="scene-screen">
+        <h2 id="scene-title">ЛОКАЦІЯ: ОФІС 2026</h2>
+        <img src="Vov.png" class="office-scene" alt="Office Scene">
+        <p class="loading-text">ВСТАНОВЛЕННЯ ЗВ'ЯЗКУ З <span id="target-name">...</span></p>
     </div>
 
-    <div id="final-animation" class="ui" style="border:none; background:none; box-shadow:none;">
-        <div id="typing-text"></div>
-    </div>
+    <canvas id="nes-canvas" width="256" height="240"></canvas>
 
+    <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
     <script>
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-        let w = canvas.width = window.innerWidth;
-        let h = canvas.height = window.innerHeight;
+        // --- АНІМАЦІЯ МАТРИЧНОГО ДОЩУ (HTML Canvas) - ОПТИМІЗАЦІЯ ШВИДКОСТІ ---
+        const bgCanvas = document.getElementById('matrix-bg');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
         
-        let selectedName = "";
-        let heroImg = "";
-        let isGaming = false;
-        let syncScore = 0;
-        let heroX = w / 2;
-        const heroes = {
-            'OLEH': 'oleh.png', 
-            'VIKTOR': 'viktor.png', 
-            'VOLODY': 'volodymyr.png',
-            'ANNA': 'anna.png'
-        };
-
-        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%";
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789АБВГДЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'.split('');
         const fontSize = 16;
-        const columns = Math.floor(w / fontSize);
-        const drops = Array(columns).fill(1);
-        const fragments = [];
+        const columns = bgCanvas.width / fontSize;
+        const drops = [];
+        for(let x = 0; x < columns; x++) drops[x] = 1;
 
-        function draw() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-            ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = "#0f0";
-            ctx.font = fontSize + "px monospace";
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
+        function drawBg() {
+            bgCtx.fillStyle = 'rgba(0, 0, 0, 0.03)'; // Зменшено прозорість для м'якшого затухання
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = '#0F0';
+            bgCtx.font = fontSize + 'px monospace';
+            for(let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                bgCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if(drops[i] * fontSize > bgCanvas.height && Math.random() > 0.99) drops[i] = 0; // Повільніша перевірка спавну
                 drops[i]++;
             }
-
-            if (isGaming) updateGame();
-            requestAnimationFrame(draw);
         }
+        // ЗМІНЕНО: Інтервал збільшено з 33мс до 150мс для набагато повільнішого дощу.
+        let bgInterval = setInterval(drawBg, 150); 
 
-        function updateGame() {
-            if (Math.random() > 0.95) {
-                fragments.push({ x: Math.random() * w, y: -20, char: chars[Math.floor(Math.random()*chars.length)] });
-            }
-
-            ctx.fillStyle = selectedName === "ANNA" ? "#ff00ff" : "#fff"; // Анна збирає рожевий код
-            ctx.font = "bold 24px monospace";
-            for (let i = fragments.length - 1; i >= 0; i--) {
-                fragments[i].y += 5;
-                ctx.fillText(fragments[i].char, fragments[i].x, fragments[i].y);
-
-                const hero = document.getElementById('hero-sprite');
-                const hRect = hero.getBoundingClientRect();
-                
-                if (fragments[i].y > hRect.top && fragments[i].y < hRect.bottom &&
-                    fragments[i].x > hRect.left && fragments[i].x < hRect.right) {
-                    fragments.splice(i, 1);
-                    updateSync(5);
-                    continue;
-                }
-                if (fragments[i].y > h) fragments.splice(i, 1);
-            }
-
-            const sprite = document.getElementById('hero-sprite');
-            sprite.style.left = heroX + "px";
-        }
-
-        function updateSync(val) {
-            syncScore += val;
-            if (syncScore > 100) syncScore = 100;
-            document.getElementById('sync-val').innerText = syncScore;
-            document.getElementById('sync-bar').style.width = syncScore + "%";
+        // --- ЛОГІКА ПЕРЕХОДІВ ---
+        function prepareScene(name) {
+            if (name) document.getElementById('userName').value = name;
+            let rawInput = document.getElementById('userName').value;
+            const errorMsg = document.getElementById('error-msg');
             
-            if (syncScore === 100 && isGaming) {
-                isGaming = false;
-                const msg = selectedName === "ANNA" ? "THE MATRIX IS REDEFINED. WELCOME, ANNA." : "SYSTEM STABILIZED. WELCOME, " + selectedName;
-                alert(msg);
-                location.reload();
-            }
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (!isGaming) return;
-            if (e.key === "ArrowLeft" || e.key === "a") heroX -= 35;
-            if (e.key === "ArrowRight" || e.key === "d") heroX += 35;
-            if (heroX < 50) heroX = 50;
-            if (heroX > w - 50) heroX = w - 50;
-        });
-
-        function setChar(name, img) {
-            document.getElementById('userName').value = name;
-            validateAndStart();
-        }
-
-        function validateAndStart() {
-            const input = document.getElementById('userName').value.trim();
-            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(input)) {
-                document.getElementById('error-msg').innerText = "Шо ти голова? Тільки латиниця!";
+            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(rawInput)) {
+                errorMsg.innerText = "Шо ти голова?";
+                errorMsg.style.display = 'block';
                 return;
             }
-            selectedName = input || "NEO";
-            heroImg = heroes[selectedName.toUpperCase()] || "viktor.png";
 
-            if (selectedName.toUpperCase() === "ANNA") {
-                document.getElementById('story-para').innerHTML = "Знайдено невідомий протокол...<br>Анна входить у потік. Світ уже не буде таким, як раніше.";
-            }
-
+            let finalName = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '') || "NEO";
+            
+            // Ховаємо меню
             document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('story-screen').style.display = 'block';
+            // Вимикаємо фоновий дощ, щоб не гальмувало гру
+            clearInterval(bgInterval); 
+            document.getElementById('matrix-bg').style.display = 'none';
+
+            // Показуємо заставку (історію)
+            document.getElementById('scene-screen').style.display = 'block';
+            document.getElementById('target-name').innerText = finalName;
+
+            // Запускаємо NES гру через невелику затримку
+            setTimeout(() => {
+                startMatrix(finalName);
+            }, 3000); // 3 секунди на перегляд сюжетного екрана
         }
 
-        function startWakeUp() {
-            document.getElementById('story-screen').style.display = 'none';
-            document.getElementById('final-animation').style.display = 'block';
-            
-            const text = `WAKE UP, ${selectedName.toUpperCase()}...`;
-            let i = 0;
-            const target = document.getElementById('typing-text');
-            
-            function type() {
-                if (i < text.length) {
-                    target.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, 150);
-                } else {
-                    setTimeout(() => {
-                        document.getElementById('final-animation').style.display = 'none';
-                        spawnHero();
-                    }, 1000);
+        // --- ЛОГІКА ЕМУЛЯТОРА NES (JSNES) ---
+        const canvas = document.getElementById('nes-canvas');
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(256, 240);
+        const buf = new Uint32Array(imageData.data.buffer);
+
+        const nes = new jsnes.NES({
+            onFrame: (frameBuffer) => {
+                for (var i = 0; i < 256 * 240; i++) buf[i] = 0xFF000000 | frameBuffer[i];
+                ctx.putImageData(imageData, 0, 0);
+            }
+        });
+
+        async function startMatrix(nameInput) {
+            // Перехід від сюжетного екрана (PNG) до Canvas емулятора
+            document.getElementById('scene-screen').style.display = 'none';
+            canvas.style.display = 'block';
+
+            nameInput = nameInput.padEnd(6, ' ').substring(0, 6);
+
+            try {
+                const response = await fetch('matrix.nes');
+                if (!response.ok) throw new Error('System error: matrix.nes not found.');
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+
+                // --- ХОТ-ПАТЧИНГ ROM (Заміна 'VIKTOR' на Ім'я Юзера) ---
+                const pattern = [86, 73, 75, 84, 79, 82]; // Байти V-I-K-T-O-R
+                let offset = -1;
+                for (let i = 0; i < data.length - 6; i++) {
+                    if (data[i] === pattern[0] && data[i+1] === pattern[1] &&
+                        data[i+2] === pattern[2] && data[i+3] === pattern[3] &&
+                        data[i+4] === pattern[4] && data[i+5] === pattern[5]) {
+                        offset = i;
+                        break;
+                    }
                 }
+
+                if (offset !== -1) {
+                    for (let i = 0; i < 6; i++) {
+                        data[offset + i] = nameInput.charCodeAt(i);
+                    }
+                } else {
+                    console.error("Pattern 'VIKTOR' for patching not found in ROM.");
+                }
+
+                let binary = "";
+                for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
+                nes.loadROM(binary);
+                
+                // --- ОБРОБКА ВВОДУ ---
+                const keyboard = (keyCode, event) => {
+                    const map = { 38: 16, 40: 32, 37: 64, 39: 128, 88: 1, 90: 2, 13: 8, 32: 4 };
+                    if (map[keyCode]) {
+                        event === 'down' ? nes.buttonDown(1, map[keyCode]) : nes.buttonUp(1, map[keyCode]);
+                    }
+                };
+                window.addEventListener("keydown", (e) => keyboard(e.keyCode, 'down'));
+                window.addEventListener("keyup", (e) => keyboard(e.keyCode, 'up'));
+
+                // --- ГОЛОВНИЙ ЦИКЛ ЕМУЛЯЦІЇ ---
+                setInterval(() => { nes.frame(); }, 16.6); // Цільові 60 FPS
+
+            } catch (err) {
+                alert("Matrix Critical Error: " + err.message);
+                document.getElementById('login-screen').style.display = 'block';
+                canvas.style.display = 'none';
             }
-            type();
         }
-
-        function spawnHero() {
-            const hero = document.getElementById('hero-sprite');
-            hero.src = heroImg;
-            hero.style.display = 'block';
-            hero.style.top = (h - 100) + "px";
-            
-            if (selectedName.toUpperCase() === "ANNA") {
-                hero.style.filter = "drop-shadow(0 0 15px #ff00ff) hue-rotate(280deg)";
-            }
-
-            document.getElementById('game-ui').style.display = 'block';
-            isGaming = true;
-        }
-
-        window.onresize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
-        draw();
     </script>
 </body>
 </html>
