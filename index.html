@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matrix Mo 2026 - Mobile Edition</title>
+    <title>Matrix Mo 2026 - Story Expansion</title>
     <style>
         body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: none; }
         canvas { position: absolute; top: 0; left: 0; z-index: 1; }
@@ -17,30 +17,34 @@
 
         .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid #00ff00; box-shadow: 0 0 25px #004400; width: 90%; max-width: 650px; box-sizing: border-box; }
         
-        /* Character Selection */
         .char-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; background: #000500; width: 28%; min-width: 90px; animation: float 10s ease-in-out infinite; box-sizing: border-box; }
+        .char-card { border: 1px solid #004400; padding: 10px; cursor: pointer; background: #000500; width: 28%; min-width: 90px; transition: 0.3s; animation: float 10s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         .mystic { border-color: #ff00ff !important; box-shadow: 0 0 10px #aa00aa; }
         .char-card img { width: 100%; max-width: 80px; image-rendering: pixelated; }
         
-        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 100%; max-width: 250px; outline: none; margin-bottom: 15px; box-sizing: border-box; }
+        input[type="text"] { background: #000; color: #00ff00; border: 1px solid #00ff00; padding: 10px; font-family: inherit; font-size: 18px; text-align: center; width: 100%; max-width: 250px; outline: none; margin-bottom: 15px; }
         .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 12px 25px; cursor: pointer; font-size: 18px; width: 100%; max-width: 250px; }
+        .btn:hover { background: #00ff00; color: #000; }
 
         #story-screen, #final-animation, #game-ui, #mobile-controls { display: none; }
-        .story-img { width: 100%; max-height: 40vh; object-fit: contain; border: 1px solid #00ff00; margin-bottom: 20px; }
         
+        /* Story Image with Glitch Effect */
+        .story-img { width: 100%; max-height: 40vh; object-fit: contain; border: 1px solid #00ff00; margin-bottom: 20px; transition: 0.3s; }
+        .glitch-active { animation: shake 0.2s infinite; filter: hue-rotate(90deg) contrast(150%); }
+        @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(5px, -5px); } 50% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, 5px); } 100% { transform: translate(0); } }
+        
+        .story-text-box { min-height: 80px; font-size: 16px; margin-bottom: 20px; line-height: 1.4; }
+
         /* Game HUD */
         #game-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; width: 90%; max-width: 300px; background: rgba(0,0,0,0.7); border: 1px solid #0f0; padding: 8px; text-align: center; font-size: 14px; }
         #sync-bar-container { width: 100%; height: 15px; border: 1px solid #0f0; margin-top: 5px; }
         #sync-bar { width: 0%; height: 100%; background: #0f0; }
 
-        /* Mobile D-PAD */
+        /* Controls */
         #mobile-controls { position: absolute; bottom: 30px; left: 0; width: 100%; display: none; justify-content: space-around; z-index: 1000; padding: 0 20px; box-sizing: border-box; }
-        .touch-btn { background: rgba(0, 50, 0, 0.6); color: #0f0; border: 2px solid #0f0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; border-radius: 10px; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .touch-btn:active { background: #0f0; color: #000; }
+        .touch-btn { background: rgba(0, 50, 0, 0.6); color: #0f0; border: 2px solid #0f0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; border-radius: 10px; user-select: none; }
 
-        #typing-text { font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #0f0; }
         #hero-sprite { position: absolute; z-index: 5; display: none; width: 70px; image-rendering: pixelated; pointer-events: none; }
         #error-msg { color: #ff0000; font-size: 14px; height: 20px; }
     </style>
@@ -74,29 +78,42 @@
     </div>
 
     <div id="story-screen" class="ui">
-        <img src="Vov.png" class="story-img">
-        <p id="story-para" style="font-size: 14px;">Львів. 2026. Збирай код, щоб стабілізувати систему!</p>
-        <button class="btn" onclick="startWakeUp()">CONNECT</button>
+        <img src="Vov.png" id="story-image-element" class="story-img">
+        <div class="story-text-box" id="story-text-element"></div>
+        <button class="btn" id="story-next-btn" onclick="nextScene()">ПРОДОВЖИТИ</button>
     </div>
 
     <div id="final-animation" class="ui" style="border:none; background:none; box-shadow:none;">
-        <div id="typing-text"></div>
+        <div id="typing-text" style="font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #0f0;"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
-        let w, h;
-        
-        let selectedName = "", heroImg = "";
-        let isGaming = false, syncScore = 0, heroX = 0;
-        let moveLeft = false, moveRight = false;
+        let w, h, selectedName = "", heroImg = "", isGaming = false, syncScore = 0, heroX = 0;
+        let moveLeft = false, moveRight = false, currentSceneIndex = 0;
         
         const heroes = {'OLEH': 'oleh.png', 'VIKTOR': 'viktor.png', 'VOLODY': 'volodymyr.png', 'ANNA': 'anna.png'};
         const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%".split("");
         const fontSize = 16;
         let drops = [];
         const fragments = [];
+
+        // ІСТОРІЯ ТА СЦЕНИ
+        const scenes = [
+            {
+                text: (name) => `Львів. 2026 рік. Відділ розробки. ${name} закінчує черговий рядок коду. Навколо тиша...`,
+                glitch: false
+            },
+            {
+                text: (name) => `Раптом курсор зупиняється. Монітор ${name} починає дивно блимати. Ви відчуваєте холод від екрана.`,
+                glitch: true
+            },
+            {
+                text: (name) => `Система виходить з-під контролю! Реальність розпадається на пікселі. Час обирати: синя чи зелена?`,
+                glitch: true
+            }
+        ];
 
         function initCanvas() {
             w = canvas.width = window.innerWidth;
@@ -122,6 +139,66 @@
         }
         setInterval(drawRain, 150);
 
+        function typeWriter(text, i, fnCallback) {
+            if (i < text.length) {
+                document.getElementById('story-text-element').innerHTML = text.substring(0, i+1) + '<span aria-hidden="true">_</span>';
+                setTimeout(() => typeWriter(text, i + 1, fnCallback), 30);
+            } else if (typeof fnCallback == 'function') {
+                setTimeout(fnCallback, 500);
+            }
+        }
+
+        function setChar(name, img) { document.getElementById('userName').value = name; validateAndStart(); }
+
+        function validateAndStart() {
+            const input = document.getElementById('userName').value.trim();
+            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(input)) { document.getElementById('error-msg').innerText = "LATIN ONLY!"; return; }
+            selectedName = input || "NEO";
+            heroImg = heroes[selectedName.toUpperCase()] || "viktor.png";
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('story-screen').style.display = 'block';
+            renderScene();
+        }
+
+        function renderScene() {
+            const scene = scenes[currentSceneIndex];
+            const img = document.getElementById('story-image-element');
+            
+            if(scene.glitch) img.classList.add('glitch-active');
+            else img.classList.remove('glitch-active');
+
+            typeWriter(scene.text(selectedName), 0);
+        }
+
+        function nextScene() {
+            currentSceneIndex++;
+            if (currentSceneIndex < scenes.length) {
+                renderScene();
+            } else {
+                startWakeUp();
+            }
+        }
+
+        function startWakeUp() {
+            document.getElementById('story-screen').style.display = 'none';
+            document.getElementById('final-animation').style.display = 'block';
+            const text = `WAKE UP, ${selectedName.toUpperCase()}...`;
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    document.getElementById('typing-text').innerHTML += text.charAt(i);
+                    i++; setTimeout(type, 150);
+                } else {
+                    setTimeout(() => {
+                        document.getElementById('final-animation').style.display = 'none';
+                        spawnHero();
+                    }, 1000);
+                }
+            }
+            type();
+        }
+
+        // GAMEPLAY LOGIC
         function gameLoop() {
             if (isGaming) updateGame();
             requestAnimationFrame(gameLoop);
@@ -145,10 +222,11 @@
                 }
                 if (fragments[i].y > h) fragments.splice(i, 1);
             }
-            // Movement logic (Keyboard + Mobile)
             if (moveLeft) heroX -= 6;
             if (moveRight) heroX += 6;
-            if (heroX < 40) heroX = 40; if (heroX > w - 40) heroX = w - 40;
+            if (heroX < 40) heroX = w - 40 ? w - 40 : heroX; 
+            if (heroX > w - 40) heroX = w - 40;
+            if (heroX < 40) heroX = 40;
             document.getElementById('hero-sprite').style.left = heroX + "px";
         }
 
@@ -159,12 +237,12 @@
             document.getElementById('sync-bar').style.width = syncScore + "%";
             if (syncScore === 100 && isGaming) {
                 isGaming = false;
-                alert("SYSTEM SYNC 100%. WELCOME TO REALITY.");
+                alert("SYSTEM SYNC 100%. СВІТ ВЖЕ НЕ БУДЕ ТАКИМ ЯК РАНІШЕ.");
                 location.reload();
             }
         }
 
-        // Керування: Клавіатура
+        // CONTROLS
         window.addEventListener('keydown', (e) => {
             if (e.key === "ArrowLeft" || e.key === "a") moveLeft = true;
             if (e.key === "ArrowRight" || e.key === "d") moveRight = true;
@@ -174,50 +252,20 @@
             if (e.key === "ArrowRight" || e.key === "d") moveRight = false;
         });
 
-        // Керування: Мобільні кнопки
         const setupBtn = (id, side) => {
             const btn = document.getElementById(id);
-            const start = (e) => { e.preventDefault(); if(side === 'L') moveLeft = true; else moveRight = true; };
-            const stop = (e) => { e.preventDefault(); if(side === 'L') moveLeft = false; else moveRight = false; };
-            btn.addEventListener('touchstart', start); btn.addEventListener('touchend', stop);
-            btn.addEventListener('mousedown', start); btn.addEventListener('mouseup', stop);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if(side === 'L') moveLeft = true; else moveRight = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); if(side === 'L') moveLeft = false; else moveRight = false; });
         };
         setupBtn('btn-left', 'L'); setupBtn('btn-right', 'R');
 
-        // Logic
-        function setChar(name, img) { document.getElementById('userName').value = name; validateAndStart(); }
-
-        function validateAndStart() {
-            const input = document.getElementById('userName').value.trim();
-            if (/[А-Яа-яЁёІіЇїЄєҐґ]/.test(input)) { document.getElementById('error-msg').innerText = "LATIN ONLY!"; return; }
-            selectedName = input || "NEO";
-            heroImg = heroes[selectedName.toUpperCase()] || "viktor.png";
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('story-screen').style.display = 'block';
-        }
-
-        function startWakeUp() {
-            document.getElementById('story-screen').style.display = 'none';
-            document.getElementById('final-animation').style.display = 'block';
-            const text = `WAKE UP, ${selectedName.toUpperCase()}...`;
-            let i = 0;
-            function type() {
-                if (i < text.length) {
-                    document.getElementById('typing-text').innerHTML += text.charAt(i);
-                    i++; setTimeout(type, 150);
-                } else {
-                    setTimeout(() => {
-                        document.getElementById('final-animation').style.display = 'none';
-                        const hero = document.getElementById('hero-sprite');
-                        hero.src = heroImg; hero.style.display = 'block'; hero.style.top = (h - 150) + "px";
-                        if (selectedName.toUpperCase() === "ANNA") hero.style.filter = "drop-shadow(0 0 15px #f0f) hue-rotate(280deg)";
-                        document.getElementById('game-ui').style.display = 'block';
-                        document.getElementById('mobile-controls').style.display = 'flex';
-                        isGaming = true;
-                    }, 1000);
-                }
-            }
-            type();
+        function spawnHero() {
+            const hero = document.getElementById('hero-sprite');
+            hero.src = heroImg; hero.style.display = 'block'; hero.style.top = (h - 150) + "px";
+            if (selectedName.toUpperCase() === "ANNA") hero.style.filter = "drop-shadow(0 0 15px #f0f) hue-rotate(280deg)";
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('mobile-controls').style.display = 'flex';
+            isGaming = true;
         }
     </script>
 </body>
