@@ -25,44 +25,54 @@
         }
         .status { margin-top: 15px; color: #008800; display: none; }
         
-        #login-screen { text-align: center; max-width: 400px; }
+        #login-screen { text-align: center; max-width: 600px; }
         
-        /* Стилі для поля введення */
+        /* Стилі для карток персонажів */
+        .char-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .char-card {
+            border: 2px solid #005500;
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            background-color: #001100;
+        }
+        .char-card:hover {
+            border-color: #00ff00;
+            background-color: #003300;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ff00;
+        }
+        .char-card img {
+            width: 100px;
+            height: 100px;
+            image-rendering: pixelated; /* Щоб пікселі залишалися чіткими */
+            margin-bottom: 10px;
+        }
+        .char-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Поле ручного введення */
         input[type="text"] {
             background-color: #000;
             color: #00ff00;
             border: 1px solid #00ff00;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 24px;
-            padding: 10px;
+            font-size: 20px;
+            padding: 8px;
             text-transform: uppercase;
             text-align: center;
             outline: none;
-            width: 200px;
+            width: 180px;
             margin-bottom: 10px;
         }
-
-        /* Кнопки вибору персонажів */
-        .char-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .char-btn {
-            background-color: #001100;
-            color: #00ff00;
-            border: 1px solid #008800;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-        .char-btn:hover {
-            background-color: #004400;
-            border-color: #00ff00;
-        }
-
+        
         /* Основна кнопка запуску */
         .start-btn {
             background-color: #003300;
@@ -70,30 +80,38 @@
             border: 1px solid #00ff00;
             font-family: 'Courier New', Courier, monospace;
             font-size: 18px;
-            padding: 12px 24px;
+            padding: 10px 20px;
             cursor: pointer;
             transition: 0.3s;
-            width: 100%;
         }
         .start-btn:hover { background-color: #00ff00; color: #000; }
-        
-        #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; }
+        #error-msg { margin-top: 15px; font-weight: bold; min-height: 24px; text-shadow: 0 0 5px red; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h2>ОБЕРІТЬ ГЕРОЯ</h2>
+        <h2>ОБЕРІТЬ СВОГО АВАТАРА</h2>
         
-        <div class="char-selector">
-            <button class="char-btn" onclick="selectChar('OLEH')">ОЛЕГ</button>
-            <button class="char-btn" onclick="selectChar('VIKTOR')">ВІКТОР</button>
-            <button class="char-btn" onclick="selectChar('VOLODY')">ВОЛОДИМИР</button>
+        <div class="char-container">
+            <div class="char-card" onclick="selectChar('OLEH')">
+                <img src="oleh.png" alt="Олег">
+                <div class="char-name">ОЛЕГ</div>
+            </div>
+            
+            <div class="char-card" onclick="selectChar('VIKTOR')">
+                <img src="viktor.png" alt="Віктор">
+                <div class="char-name">ВІКТОР</div>
+            </div>
+            
+            <div class="char-card" onclick="selectChar('VOLODY')">
+                <img src="volodymyr.png" alt="Володимир">
+                <div class="char-name">ВОЛОДИМИР</div>
+            </div>
         </div>
 
-        <p>АБО ВВЕДІТЬ ВЛАСНЕ ІМ'Я:</p>
-        <input type="text" id="userName" maxlength="6" placeholder="NEO" autocomplete="off" spellcheck="false"><br>
-        
+        <p>АБО ВВЕДІТЬ КОДОВЕ ІМ'Я:</p>
+        <input type="text" id="userName" maxlength="6" placeholder="NEO" autocomplete="off" spellcheck="false">
         <button class="start-btn" onclick="startMatrix()">ІНІЦІАЛІЗАЦІЯ</button>
         <p id="error-msg" style="color: red; display: none;"></p>
     </div>
@@ -115,10 +133,9 @@
             }
         });
 
-        // Функція для кнопок швидкого вибору
         function selectChar(name) {
             document.getElementById('userName').value = name;
-            startMatrix(); // Одразу запускаємо
+            startMatrix(); 
         }
 
         async function startMatrix() {
@@ -126,7 +143,7 @@
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'none';
 
-            // Перевірка на кирилицю (пасхалка)
+            // Пасхалка залишилась на місці!
             const cyrillicPattern = /[А-Яа-яЁёІіЇїЄєҐґ]/;
             if (cyrillicPattern.test(rawInput)) {
                 errorMsg.innerText = "Шо ти голова?";
@@ -144,11 +161,10 @@
 
             try {
                 const response = await fetch('matrix.nes');
-                if (!response.ok) throw new Error('Картридж не знайдено!');
+                if (!response.ok) throw new Error('Системна помилка: Картридж не знайдено!');
                 const arrayBuffer = await response.arrayBuffer();
                 const data = new Uint8Array(arrayBuffer);
 
-                // Патчимо ім'я в ROM
                 let offset = -1;
                 for (let i = 0; i < data.length - 6; i++) {
                     if (data[i] === 86 && data[i+1] === 73 && data[i+2] === 75 &&
@@ -168,7 +184,6 @@
                 for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
                 nes.loadROM(binary);
                 
-                // Клавіатура
                 const keyboard = (keyCode, event) => {
                     const map = { 38: 16, 40: 32, 37: 64, 39: 128, 88: 1, 90: 2, 13: 8, 32: 4 };
                     if (map[keyCode]) {
