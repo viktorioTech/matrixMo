@@ -20,12 +20,11 @@
             image-rendering: pixelated; 
             width: 512px; 
             height: 480px; 
-            display: none; /* Ховаємо гру до введення імені */
+            display: none;
             box-shadow: 0 0 20px #00ff00;
         }
         .status { margin-top: 15px; color: #008800; display: none; }
         
-        /* Стилі для екрана введення */
         #login-screen { text-align: center; }
         input[type="text"] {
             background-color: #000;
@@ -52,6 +51,8 @@
             transition: 0.3s;
         }
         button:hover { background-color: #00ff00; color: #000; }
+        /* Додамо трохи стилю для пасхалки */
+        #error-msg { margin-top: 15px; font-weight: bold; font-size: 20px; text-shadow: 0 0 5px red; }
     </style>
 </head>
 <body>
@@ -82,28 +83,32 @@
         });
 
         async function startMatrix() {
-            // 1. Отримуємо і обробляємо ім'я
-            let nameInput = document.getElementById('userName').value.toUpperCase();
-            nameInput = nameInput.replace(/[^A-Z0-9 ]/g, ''); // Залишаємо тільки латиницю і цифри
-            
+            let rawInput = document.getElementById('userName').value;
+
+            // --- ПАСХАЛКА: Перевірка на кирилицю ---
+            const cyrillicPattern = /[А-Яа-яЁёІіЇїЄєҐґ]/;
+            if (cyrillicPattern.test(rawInput)) {
+                const errorMsg = document.getElementById('error-msg');
+                errorMsg.innerText = "Шо ти голова?";
+                errorMsg.style.display = 'block';
+                return; // Зупиняємо функцію, гра не запуститься
+            }
+            // ----------------------------------------
+
+            let nameInput = rawInput.toUpperCase().replace(/[^A-Z0-9 ]/g, '');
             if (nameInput === "") nameInput = "NEO";
-            // Додаємо пробіли, якщо ім'я коротше 6 літер, щоб не зламати розмір файлу
             nameInput = nameInput.padEnd(6, ' ').substring(0, 6);
 
-            // 2. Змінюємо інтерфейс
             document.getElementById('login-screen').style.display = 'none';
             canvas.style.display = 'block';
             document.getElementById('controls').style.display = 'block';
 
             try {
-                // 3. Завантажуємо файл гри
                 const response = await fetch('matrix.nes');
                 if (!response.ok) throw new Error('Файл гри не знайдено!');
                 const arrayBuffer = await response.arrayBuffer();
                 const data = new Uint8Array(arrayBuffer);
 
-                // --- 4. ХАКЕРСЬКИЙ ПАТЧ ПАМ'ЯТІ ---
-                // Шукаємо байти слова "VIKTOR" (в ASCII це 86, 73, 75, 84, 79, 82)
                 let offset = -1;
                 for (let i = 0; i < data.length - 6; i++) {
                     if (data[i] === 86 && data[i+1] === 73 && data[i+2] === 75 &&
@@ -113,21 +118,17 @@
                     }
                 }
 
-                // Якщо знайшли — перезаписуємо на нове ім'я
                 if (offset !== -1) {
                     for (let i = 0; i < 6; i++) {
                         data[offset + i] = nameInput.charCodeAt(i);
                     }
                 }
-                // -----------------------------------
 
-                // 5. Конвертуємо і запускаємо емулятор
                 let binary = "";
                 for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
                 
                 nes.loadROM(binary);
                 
-                // Налаштування клавіатури
                 const keyboard = (keyCode, event) => {
                     const map = { 38: 16, 40: 32, 37: 64, 39: 128, 88: 1, 90: 2, 13: 8, 32: 4 };
                     if (map[keyCode]) {
@@ -137,7 +138,7 @@
                 window.addEventListener("keydown", (e) => keyboard(e.keyCode, 'down'));
                 window.addEventListener("keyup", (e) => keyboard(e.keyCode, 'up'));
 
-                setInterval(() => { nes.frame(); }, 16.6); // Запуск 60 FPS
+                setInterval(() => { nes.frame(); }, 16.6);
 
             } catch (err) {
                 document.getElementById('error-msg').innerText = err.message;
