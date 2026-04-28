@@ -2,118 +2,141 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>NES Matrix 2026</title>
+    <title>Matrix Mo 2026 - Evolution</title>
     <style>
-        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        #matrix-bg { position: absolute; top: 0; left: 0; z-index: -1; opacity: 0.3; }
-        .screen { text-align: center; display: none; max-width: 800px; }
-        #login-screen { display: block; } /* Початковий екран */
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+        .ui { position: relative; z-index: 10; text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid #00ff00; box-shadow: 0 0 20px #004400; max-width: 90%; }
         
-        .char-card { border: 2px solid #005500; padding: 10px; cursor: pointer; display: inline-block; margin: 10px; transition: 0.3s; background: #001100; }
+        /* Вибір персонажа */
+        .char-card { display: inline-block; margin: 15px; cursor: pointer; transition: 0.3s; border: 1px solid #004400; padding: 10px; }
         .char-card:hover { border-color: #00ff00; transform: scale(1.1); box-shadow: 0 0 15px #00ff00; }
         .char-card img { width: 100px; height: 100px; image-rendering: pixelated; }
-
-        .story-img { width: 100%; max-width: 500px; border: 2px solid #00ff00; margin-bottom: 20px; box-shadow: 0 0 20px #004400; }
-        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-family: inherit; font-size: 18px; }
-        canvas#nes-canvas { border: 2px solid #00ff00; width: 512px; height: 480px; display: none; }
+        
+        /* Історія */
+        #story-screen, #final-animation { display: none; }
+        .story-img { width: 100%; max-width: 500px; border: 1px solid #00ff00; margin-bottom: 20px; }
+        .btn { background: #003300; color: #00ff00; border: 1px solid #00ff00; padding: 10px 20px; cursor: pointer; font-size: 18px; margin-top: 10px; }
+        
+        /* Фінальний екран */
+        #typing-text { font-size: 32px; font-weight: bold; text-shadow: 0 0 10px #00ff00; }
+        #hero-sprite { position: absolute; z-index: 5; display: none; width: 80px; image-rendering: pixelated; }
     </style>
 </head>
 <body>
 
-    <canvas id="matrix-bg"></canvas>
+    <canvas id="matrix-canvas"></canvas>
+    <img id="hero-sprite" src="" alt="Hero">
 
-    <div id="login-screen" class="screen">
-        <h2>ОБЕРІТЬ СВОГО АВАТАРА</h2>
-        <div onclick="startStory('OLEH')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
-        <div onclick="startStory('VIKTOR')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
-        <div onclick="startStory('VOLODY')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
+    <div id="login-screen" class="ui">
+        <h2>IDENTIFY YOURSELF</h2>
+        <div onclick="startStory('OLEH', 'oleh.png')" class="char-card"><img src="oleh.png"><br>ОЛЕГ</div>
+        <div onclick="startStory('VIKTOR', 'viktor.png')" class="char-card"><img src="viktor.png"><br>ВІКТОР</div>
+        <div onclick="startStory('VOLODY', 'volodymyr.png')" class="char-card"><img src="volodymyr.png"><br>ВОЛОДИМИР</div>
     </div>
 
-    <div id="story-1" class="screen">
-        <img src="Vov.png" class="story-img">
-        <p>Львів. 2026 рік. Офіс компанії.<br>Звичайний робочий день підходить до кінця...</p>
-        <button class="btn" onclick="showStory2()">ПРОДОВЖИТИ</button>
+    <div id="story-screen" class="ui">
+        <img id="story-img" src="Vov.png" class="story-img">
+        <p id="story-text">Система стабільна. Офіс 2026 працює в штатному режимі...</p>
+        <button class="btn" onclick="nextStory()">ПРОДОВЖИТИ</button>
     </div>
 
-    <div id="story-2" class="screen">
-        <img src="Vov1.png" class="story-img">
-        <p id="anomaly-text">Раптом на моніторі з'являється аномальний код...</p>
-        <button class="btn" onclick="launchNES()">УВІЙТИ В МАТРИЦЮ</button>
+    <div id="final-animation" class="ui" style="border:none; background:none;">
+        <div id="typing-text"></div>
     </div>
 
-    <canvas id="nes-canvas" width="256" height="240"></canvas>
-
-    <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
     <script>
-        let selectedHero = "NEO";
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+        
+        let selectedHero = "";
+        let heroImg = "";
+        let storyStep = 0;
 
-        // Фоновий дощ
-        const bg = document.getElementById('matrix-bg');
-        const ctxBg = bg.getContext('2d');
-        bg.width = window.innerWidth; bg.height = window.innerHeight;
-        const drops = Array(Math.floor(bg.width/16)).fill(1);
-        function drawRain() {
-            ctxBg.fillStyle = 'rgba(0,0,0,0.05)'; ctxBg.fillRect(0,0,bg.width,bg.height);
-            ctxBg.fillStyle = '#0F0'; drops.forEach((y, i) => {
-                ctxBg.fillText(String.fromCharCode(Math.random()*128), i*16, y*16);
-                if(y*16 > bg.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
-            });
+        // --- МАТРИЧНИЙ ДОЩ (Працює завжди на фоні) ---
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]";
+        const fontSize = 16;
+        const columns = Math.floor(w / fontSize);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
         }
-        setInterval(drawRain, 50);
+        setInterval(drawMatrix, 50);
 
-        // Логіка перемикання екранів
-        function startStory(name) {
+        // --- ЛОГІКА ІСТОРІЇ ---
+        function startStory(name, img) {
             selectedHero = name;
+            heroImg = img;
             document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('story-1').style.display = 'block';
+            document.getElementById('story-screen').style.display = 'block';
         }
 
-        function showStory2() {
-            document.getElementById('story-1').style.display = 'none';
-            document.getElementById('story-2').style.display = 'block';
-            document.getElementById('anomaly-text').innerText = `На моніторі ${selectedHero} з'являється аномальний код...`;
+        function nextStory() {
+            storyStep++;
+            const img = document.getElementById('story-img');
+            const txt = document.getElementById('story-text');
+            
+            if (storyStep === 1) {
+                img.src = "Vov1.png";
+                txt.innerText = "Зачекайте... щось не так. Код виходить з-під контролю!";
+            } else {
+                startWakeUp();
+            }
         }
 
-        async function launchNES() {
-            document.getElementById('story-2').style.display = 'none';
-            const canvas = document.getElementById('nes-canvas');
-            canvas.style.display = 'block';
-
-            const nes = new jsnes.NES({
-                onFrame: (fb) => {
-                    const ctx = canvas.getContext('2d');
-                    const img = ctx.createImageData(256, 240);
-                    const u32 = new Uint32Array(img.data.buffer);
-                    for(let i=0; i<256*240; i++) u32[i] = 0xFF000000 | fb[i];
-                    ctx.putImageData(img, 0, 0);
+        // --- ФІНАЛЬНА АНІМАЦІЯ (БЕЗ ЕМУЛЯТОРА) ---
+        function startWakeUp() {
+            document.getElementById('story-screen').style.display = 'none';
+            document.getElementById('final-animation').style.display = 'block';
+            
+            const text = `WAKE UP, ${selectedHero}...`;
+            let i = 0;
+            const target = document.getElementById('typing-text');
+            
+            function type() {
+                if (i < text.length) {
+                    target.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, 150);
+                } else {
+                    setTimeout(spawnHero, 1000);
                 }
-            });
-
-            const res = await fetch('matrix.nes');
-            const ab = await res.arrayBuffer();
-            const data = new Uint8Array(ab);
-
-            // ШУКАЄМО VIKTOR І ЗАМІНЮЄМО НА HERO
-            const pattern = [86, 73, 75, 84, 79, 82]; // V-I-K-T-O-R
-            let offset = -1;
-            for(let i=0; i<data.length-6; i++) {
-                if(pattern.every((byte, j) => data[i+j] === byte)) { offset = i; break; }
             }
-            if(offset !== -1) {
-                const name = selectedHero.padEnd(6, ' ');
-                for(let i=0; i<6; i++) data[offset+i] = name.charCodeAt(i);
-            }
-
-            let bin = ""; for(let i=0; i<data.length; i++) bin += String.fromCharCode(data[i]);
-            nes.loadROM(bin);
-            
-            // Керування
-            const map = {38:16, 40:32, 37:64, 39:128, 88:1, 90:2, 13:8, 32:4};
-            window.onkeydown = (e) => { if(map[e.keyCode]) nes.buttonDown(1, map[e.keyCode]); };
-            window.onkeyup = (e) => { if(map[e.keyCode]) nes.buttonUp(1, map[e.keyCode]); };
-            
-            setInterval(() => nes.frame(), 16);
+            type();
         }
+
+        function spawnHero() {
+            const hero = document.getElementById('hero-sprite');
+            hero.src = heroImg;
+            hero.style.display = 'block';
+            hero.style.left = '50%';
+            hero.style.top = '70%';
+            hero.style.transform = 'translate(-50%, -50%)';
+            
+            // Робимо героя "живим" (легке погойдування)
+            let angle = 0;
+            setInterval(() => {
+                angle += 0.1;
+                hero.style.marginTop = Math.sin(angle) * 10 + "px";
+            }, 30);
+        }
+
+        window.onresize = () => {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        };
     </script>
 </body>
 </html>
